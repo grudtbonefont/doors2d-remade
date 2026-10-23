@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DOORS 2D — Отель (фан-ремейк)</title>
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%23120a06%22/%3E%3Crect x=%228%22 y=%224%22 width=%2216%22 height=%2226%22 fill=%22%236b3a1c%22 stroke=%22%23d9b86a%22 stroke-width=%222%22/%3E%3Ccircle cx=%2220%22 cy=%2218%22 r=%222%22 fill=%22%23ffd86a%22/%3E%3C/svg%3E"><title>DOORS 2D — Отель (фан-ремейк)</title>
 <style>html,body{margin:0;background:#000;height:100%;overflow:hidden;font-family:Arial,sans-serif}canvas{display:block;margin:0 auto}</style></head><body><canvas id="c" width="960" height="600"></canvas><script>
 "use strict";
 const C=document.getElementById('c'),X=C.getContext('2d');const W=960,H=600,T=32;let GH=160;
@@ -18,7 +18,19 @@ flick:()=>noise(.08,.12,2000,'highpass'),step:r=>noise(.05,r?.12:.04,500),lock:(
 seek:()=>{tone(80,1.5,'sawtooth',.2,40);noise(1.5,.3,300)},figure:()=>tone(60,1.2,'sawtooth',.2,45),bad:()=>tone(200,.3,'square',.1,100),
 holy:()=>{tone(880,.6,'sine',.12);tone(1320,.8,'sine',.08)},win:()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,.4,'triangle',.15),i*180))},snare:()=>{tone(900,.05,'square',.2);noise(.2,.3,2000)}};
 // ---------- DATA ----------
-const ITEM={flashlight:{n:'Фонарик',c:'#ff8'},battery:{n:'Батарейка',c:'#6f6'},lockpick:{n:'Отмычка',c:'#bbb'},vitamins:{n:'Витамины',c:'#f80'},crucifix:{n:'Распятие',c:'#eee'},key:{n:'Ключ',c:'#fd4'}};
+const ITEM={flashlight:{n:'Фонарик',c:'#ff8'},battery:{n:'Батарейка',c:'#6f6'},lockpick:{n:'Отмычка',c:'#bbb'},vitamins:{n:'Витамины',c:'#f80'},crucifix:{n:'Распятие',c:'#eee'},key:{n:'Ключ',c:'#fd4'},lighter:{n:'Зажигалка',c:'#f63'},candle:{n:'Свеча',c:'#ffe9b0'}};
+function drawIcon(X,it,x,y,s){X.save();X.translate(x,y);X.scale(s/32,s/32);X.lineWidth=1.5;const g=(a,b,c,d,cs)=>{const q=X.createLinearGradient(a,b,c,d);cs.forEach((c,i)=>q.addColorStop(i/(cs.length-1),c));return q};
+ switch(it){
+ case 'flashlight':X.rotate(-.6);X.fillStyle=g(0,-5,0,5,['#555','#ccc','#444']);X.fillRect(-13,-4,17,8);X.fillStyle=g(0,-7,0,7,['#666','#eee','#555']);X.beginPath();X.moveTo(4,-4);X.lineTo(10,-7);X.lineTo(10,7);X.lineTo(4,4);X.fill();X.fillStyle='#ffd';X.fillRect(10,-6,2,12);X.fillStyle='#222';for(let i=-11;i<0;i+=3)X.fillRect(i,-4,1,8);X.fillStyle='#c33';X.fillRect(-4,-6,4,2);X.fillStyle='rgba(255,255,180,.35)';X.beginPath();X.moveTo(12,-6);X.lineTo(18,-10);X.lineTo(18,10);X.lineTo(12,6);X.fill();break;
+ case 'lighter':X.fillStyle=g(-7,0,7,0,['#a22','#f55','#911']);X.fillRect(-7,-4,14,16);X.fillStyle=g(-7,0,7,0,['#888','#eee','#777']);X.fillRect(-7,-8,14,5);X.fillStyle='#333';X.fillRect(-4,-11,5,3);X.beginPath();X.arc(4,-9,2.5,0,7);X.fill();X.fillStyle='#f80';X.beginPath();X.ellipse(-1.5,-15,3,5,0,0,7);X.fill();X.fillStyle='#ff6';X.beginPath();X.ellipse(-1.5,-14,1.5,3,0,0,7);X.fill();X.fillStyle='rgba(255,255,255,.3)';X.fillRect(-5,-3,2,13);break;
+ case 'lockpick':X.strokeStyle='#ccc';X.lineWidth=2;X.beginPath();X.moveTo(-12,10);X.lineTo(8,-10);X.lineTo(11,-9);X.lineTo(12,-12);X.stroke();X.strokeStyle='#999';X.beginPath();X.moveTo(-12,4);X.lineTo(6,-6);X.lineTo(9,-3);X.stroke();X.fillStyle=g(-14,6,-8,12,['#542','#a74']);X.beginPath();X.arc(-11,9,4,0,7);X.fill();X.fillStyle='#321';X.beginPath();X.arc(-11,9,1.5,0,7);X.fill();break;
+ case 'vitamins':X.fillStyle=g(-8,0,8,0,['#c60','#fa4','#b50']);X.fillRect(-8,-6,16,18);X.fillStyle='#fff';X.fillRect(-8,-1,16,7);X.fillStyle='#e22';X.fillRect(-1,0,2,5);X.fillRect(-3,2,6,1.5);X.fillStyle=g(-9,0,9,0,['#ddd','#fff','#bbb']);X.fillRect(-9,-12,18,6);X.fillStyle='rgba(0,0,0,.2)';for(let i=-8;i<9;i+=3)X.fillRect(i,-12,1,6);X.fillStyle='rgba(255,255,255,.35)';X.fillRect(-6,-5,2,16);break;
+ case 'crucifix':X.fillStyle=g(-6,0,6,0,['#776','#eee','#998']);X.fillRect(-3,-14,6,28);X.fillRect(-10,-7,20,5);X.strokeStyle='#443';X.lineWidth=1;X.strokeRect(-3,-14,6,28);X.strokeRect(-10,-7,20,5);X.fillStyle='#b96';X.beginPath();X.arc(0,-5,2,0,7);X.fill();X.fillRect(-1,-3,2,7);X.fillStyle='rgba(180,220,255,.25)';X.beginPath();X.arc(0,-5,12,0,7);X.fill();break;
+ case 'key':X.fillStyle=g(0,-10,0,10,['#fe8','#c90','#fd5']);X.beginPath();X.arc(-7,0,7,0,7);X.fill();X.fillStyle='#120a06';X.beginPath();X.arc(-7,0,3,0,7);X.fill();X.fillStyle='#d9a52a';X.fillRect(-1,-2,15,4);X.fillRect(9,2,2,5);X.fillRect(12,2,2,4);X.fillStyle='rgba(255,255,255,.4)';X.fillRect(0,-2,13,1);break;
+ case 'battery':X.fillStyle=g(-7,0,7,0,['#3a3','#8f8','#282']);X.fillRect(-7,-10,14,22);X.fillStyle='#ccc';X.fillRect(-3,-13,6,3);X.fillStyle='#222';X.fillRect(-7,4,14,8);X.fillStyle='#ff4';X.beginPath();X.moveTo(1,-8);X.lineTo(-3,-1);X.lineTo(0,-1);X.lineTo(-2,4);X.lineTo(3,-3);X.lineTo(0,-3);X.fill();X.fillStyle='#fff';X.font='bold 6px Arial';X.textAlign='center';X.fillText('+',0,10);break;
+ case 'candle':X.fillStyle=g(-6,0,6,0,['#dcb','#fff4dd','#cba']);X.fillRect(-5,-6,10,18);X.fillStyle='#fff4dd';X.beginPath();X.ellipse(0,-6,5,2,0,0,7);X.fill();X.fillRect(-6,4,3,5);X.fillStyle='#863';X.beginPath();X.ellipse(0,13,10,3,0,0,7);X.fill();X.fillStyle='#222';X.fillRect(-.5,-10,1,4);X.fillStyle='#f90';X.beginPath();X.ellipse(0,-13,2.5,4.5,0,0,7);X.fill();X.fillStyle='#ffd';X.beginPath();X.ellipse(0,-12,1.2,2.5,0,0,7);X.fill();X.fillStyle='rgba(255,200,100,.2)';X.beginPath();X.arc(0,-12,9,0,7);X.fill();break;
+ default:X.fillStyle=(ITEM[it]||{c:'#fff'}).c;X.beginPath();X.arc(0,0,8,0,7);X.fill()}
+ X.restore()}
 const SHOP=[['battery',40],['lockpick',60],['vitamins',50],['crucifix',150]];
 const SOLID={dresser:1,wardrobe:1,bed:1,desk:1,shelf:1,counter:1,rubble:1,plant:1,breaker:1,crate:1};
 const HINTS={rush:'Это был Раш. Когда свет мерцает — сразу прячься в шкаф или под кровать!',ambush:'Это был Эмбуш. Он без предупреждения и возвращается 2–4 раза. Выходи только когда всё стихнет.',
@@ -106,15 +118,19 @@ function gen(){
 // ---------- STATE ----------
 let P,S,K={},mouse={x:0,y:0,t:-9},started=false,frames=0;
 function reset(){gen();const r=rooms[0];
- P={x:(r.x0+3)*T+16,y:(r.y0+Math.floor(r.h/2))*T+16,hp:100,gold:0,face:0,inv:['flashlight'],sel:0,bat:100,light:false,hidden:null,hideT:0,stun:0,vit:0,room:0,best:0,noise:0,roomT:0,hurtT:0,fireCd:0,st:100,tired:false};
- S={t:0,ents:[],msg:'',msgT:0,flick:0,dead:null,win:false,codeInput:null,shop:false,books:[],seek:null,trail:[],trailT:0,halt:null,sign:0,fuses:0,figure:null,screech:null,eyes:null,shake:0,hb:null,pendingSlam:null};
+ P={x:(r.x0+3)*T+16,y:(r.y0+Math.floor(r.h/2))*T+16,hp:100,gold:0,face:0,inv:['flashlight',null,null,null,null,null,null,null,null,null],fuel:100,crouch:false,sel:0,bat:100,light:false,hidden:null,hideT:0,stun:0,vit:0,room:0,best:0,noise:0,roomT:0,hurtT:0,fireCd:0,st:100,tired:false};
+ S={t:0,ents:[],msg:'',msgT:0,flick:0,dead:null,win:false,codeInput:null,shop:false,books:[],seek:null,trail:[],trailT:0,halt:null,sign:0,fuses:0,figure:null,screech:null,eyes:null,shake:0,hb:null,pendingSlam:null,drops:[]};
  msg('Ресепшен. Ключ от двери 001 лежит на стойке.',5)}
 function msg(t,d=3){S.msg=t;S.msgT=d}
 function damage(a,c){if(S.dead||S.win)return;P.hp-=a;P.hurtT=.3;S.shake=.3;SND.hurt();if(P.hp<=0){P.hp=0;S.dead=c}}
 function die(c){if(!S.dead){P.hp=0;S.dead=c;SND.hurt();S.shake=.5}}
-function addItem(it){if(P.inv.length>=5){msg('Инвентарь полон');return false}P.inv.push(it);return true}
+function addItem(it){const i=P.inv.indexOf(null);if(i<0){msg('Инвентарь полон (10/10). Брось что-нибудь (G)');return false}P.inv[i]=it;return true}
 const held=n=>P.inv[P.sel]===n;
-function removeItem(n){const i=P.inv.indexOf(n);if(i>=0){P.inv.splice(i,1);if(P.sel>=P.inv.length)P.sel=Math.max(0,P.inv.length-1)}}
+function removeItem(n){const i=P.inv[P.sel]===n?P.sel:P.inv.indexOf(n);if(i>=0)P.inv[i]=null;if(n==='flashlight'&&!P.inv.includes('flashlight'))P.light=false}
+function dropItem(){const it=P.inv[P.sel];if(!it){msg('В руке ничего нет');return}if(P.hidden)return;P.inv[P.sel]=null;if(it==='flashlight'&&!P.inv.includes('flashlight'))P.light=false;S.drops.push({x:P.x+Math.cos(P.face)*14,y:P.y+Math.sin(P.face)*14,it,room:P.room});tone(180,.1,'triangle',.08);msg('Брошено: '+ITEM[it].n,1.5)}
+function nearDrop(){let b=null,bd=34;for(const d of S.drops){const q=Math.hypot(d.x-P.x,d.y-P.y);if(q<bd){bd=q;b=d}}return b}
+function useSlot(i){P.sel=i;const it=P.inv[i];
+  if(it==='battery'){P.bat=100;P.fuel=100;removeItem('battery');SND.pick();msg('Фонарик заряжен')}else if(it==='vitamins'){P.vit=7;P.hp=Math.min(100,P.hp+15);removeItem('vitamins');SND.pick();msg('Витамины: скорость!')}}
 function useCrucifix(name){removeItem('crucifix');SND.holy();msg('Распятие изгнало: '+name+'!',3)}
 // ---------- INPUT ----------
 addEventListener('keydown',e=>{au();K[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(!e.repeat)handleKey(e.code)});
@@ -125,12 +141,15 @@ function handleKey(code){const e={code};
  if(S.codeInput!==null){if(/^Digit\d$/.test(e.code)&&S.codeInput.length<5)S.codeInput+=e.code[5];else if(e.code==='Backspace')S.codeInput=S.codeInput.slice(0,-1);else if(e.code==='Escape')S.codeInput=null;
   else if(e.code==='Enter'){if(S.codeInput===libCode){doors[50].code=false;doors[50].open=true;SND.door();msg('Замок открыт!');S.figure=null}else{SND.bad();msg('Неверный код! Фигура услышала...');if(S.figure){S.figure.target={x:P.x,y:P.y};S.figure.alert=true;S.figure.pt=0}}S.codeInput=null}return}
  if(S.shop){const m=/^Digit([1-4])$/.exec(e.code);if(m){const [it,pr]=SHOP[+m[1]-1];if(P.gold<pr){SND.bad();msg('Недостаточно золота')}else if(addItem(it)){P.gold-=pr;SND.gold();msg('Куплено: '+ITEM[it].n)}}else if(e.code==='Escape'||e.code==='KeyE')S.shop=false;return}
- if(e.code==='KeyE')interact();
+ if(e.code==='KeyE'){const d=!P.hidden&&nearDrop();if(d){if(addItem(d.it)){S.drops.splice(S.drops.indexOf(d),1);SND.pick();msg('Подобрано: '+ITEM[d.it].n,1.5)}}else interact()}
+ if(e.code==='KeyG')dropItem();
+ if(e.code==='KeyC'||e.code==='ControlLeft'||e.code==='ControlRight'){if(touch&&e.code==='KeyC')P.crouch=!P.crouch}
  if(e.code==='KeyF'){if(P.inv.includes('flashlight')){if(P.bat>0){P.light=!P.light;tone(1500,.03,'square',.05)}else msg('Батарейка села')}else msg('Нет фонарика')}
- const m=/^Digit([1-5])$/.exec(e.code);if(m){const i=+m[1]-1;if(i<P.inv.length){P.sel=i;const it=P.inv[i];
-  if(it==='battery'){P.bat=100;removeItem('battery');SND.pick();msg('Фонарик заряжен')}else if(it==='vitamins'){P.vit=7;P.hp=Math.min(100,P.hp+15);removeItem('vitamins');SND.pick();msg('Витамины: скорость!')}else if(it==='flashlight'){if(P.bat>0)P.light=!P.light}}}
+ const m=/^Digit(\d)$/.exec(e.code);if(m){const i=(+m[1]+9)%10;if(P.sel===i&&P.inv[i]==='flashlight'&&P.bat>0)P.light=!P.light;useSlot(i)}
+ if(e.code==='WheelDown')P.sel=(P.sel+1)%10;if(e.code==='WheelUp')P.sel=(P.sel+9)%10;
 }
 addEventListener('keyup',e=>{K[e.code]=false});
+addEventListener('wheel',e=>{if(started&&S.codeInput===null&&!S.shop)handleKey(e.deltaY>0?'WheelDown':'WheelUp')},{passive:true});
 C.addEventListener('mousemove',e=>{const b=C.getBoundingClientRect();mouse.x=(e.clientX-b.left)*W/b.width;mouse.y=(e.clientY-b.top)*H/b.height;mouse.t=performance.now()/1000});
 C.addEventListener('mousedown',()=>{au();if(!started)started=true;else if(S.dead||S.win)reset()});
 let touch=false,TM={x:0,y:0,id:null,cx:0,cy:0},btns=[],holdIds={};
@@ -153,7 +172,7 @@ function interact(){
  const o=nearObj();
  if(o){switch(o.t){
   case 'dresser':o.used=true;tone(250,.15,'triangle',.08);if(o.key){addItem('key');SND.pick();msg('Найден ключ!')}else{const R=o.rich?Math.random()*.68:Math.random();
-   if(R<.45){const g=ri(5,30);P.gold+=g;SND.gold();msg('+'+g+' золота')}else if(R<.68){const it=Math.random()<.12?'crucifix':pick(['battery','lockpick','vitamins','battery']);if(addItem(it)){SND.pick();msg('Найдено: '+ITEM[it].n)}}else msg('Пусто...')}break;
+   if(R<.45){const g=ri(5,30);P.gold+=g;SND.gold();msg('+'+g+' золота')}else if(R<.68){const it=Math.random()<.12?'crucifix':pick(['battery','lockpick','vitamins','battery','lighter','candle']);if(addItem(it)){SND.pick();msg('Найдено: '+ITEM[it].n)}}else msg('Пусто...')}break;
   case 'wardrobe':case 'bed':P.hidden=o;P.hideT=0;SND.door();break;
   case 'desk':if(o.hasKey){if(addItem('key')){o.hasKey=false;SND.pick();msg('Ключ взят! Открой дверь 001 (E)')}}else{P.hidden=o;P.hideT=0;tone(200,.1)}break;
   case 'book':o.gone=true;S.books[o.i]=libCode[o.i];SND.pick();msg('Книга: '+(o.i+1)+'-я цифра кода = '+libCode[o.i],4);break;
@@ -189,7 +208,7 @@ function enterRoom(r){P.room=r.n;P.roomT=0;if(r.n>P.best)P.best=r.n;if(S.eyes&&S
 // ---------- UPDATE ----------
 let stepT=0;
 function solidPx(px,py){return !passable(Math.floor(px/T),Math.floor(py/T))}
-function hit(x,y){const r=10;return solidPx(x-r,y-r)||solidPx(x+r,y-r)||solidPx(x-r,y+r)||solidPx(x+r,y+r)}
+function hit(x,y){const r=P.crouch?7:10;return solidPx(x-r,y-r)||solidPx(x+r,y-r)||solidPx(x-r,y+r)||solidPx(x+r,y+r)}
 function unstuck(){if(!hit(P.x,P.y))return;for(let rad=2;rad<=96;rad+=2)for(let a=0;a<16;a++){const nx=P.x+Math.cos(a*Math.PI/8)*rad,ny=P.y+Math.sin(a*Math.PI/8)*rad;if(!hit(nx,ny)){P.x=nx;P.y=ny;return}}}
 function move(dx,dy){if(!hit(P.x+dx,P.y))P.x+=dx;if(!hit(P.x,P.y+dy))P.y+=dy}
 function update(dt){
@@ -200,10 +219,10 @@ function update(dt){
  if(P.hidden||S.codeInput!==null||S.shop)mx=my=0;
  if(Math.hypot(TM.x,TM.y)>.2){mx+=TM.x;my+=TM.y}
  if(P.hidden||S.codeInput!==null||S.shop){mx=my=0}
- const want=!!(K.ShiftLeft||K.ShiftRight)&&(mx||my);const run=want&&!P.tired;if(run)P.st-=dt*(S.seek?0:20);else P.st=Math.min(100,P.st+dt*(want?6:15));if(P.st<=0){P.st=0;P.tired=true;msg('Нет сил бежать...',1.5)}if(P.tired&&P.st>35)P.tired=false;if(P.stun>0)P.stun-=dt;if(P.vit>0)P.vit-=dt;if(P.fireCd>0)P.fireCd-=dt;
- const sp=(run?205:115)*(P.vit>0?1.3:1)*(P.stun>0?0:1);
+ P.crouch=touch?P.crouch:!!(K.KeyC||K.ControlLeft||K.ControlRight);if(S.seek&&P.crouch&&touch)P.crouch=false;const want=!P.crouch&&!!(K.ShiftLeft||K.ShiftRight)&&(mx||my);const run=want&&!P.tired;if(run)P.st-=dt*(S.seek?0:20);else P.st=Math.min(100,P.st+dt*(want?6:15));if(P.st<=0){P.st=0;P.tired=true;msg('Нет сил бежать...',1.5)}if(P.tired&&P.st>35)P.tired=false;if(P.stun>0)P.stun-=dt;if(P.vit>0)P.vit-=dt;if(P.fireCd>0)P.fireCd-=dt;
+ const sp=(run?205:P.crouch?62:115)*(P.vit>0?1.3:1)*(P.stun>0?0:1);
  if(performance.now()/1000-mouse.t<1.5)P.face=Math.atan2(mouse.y-H/2,mouse.x-W/2);
- if((mx||my)&&sp>0){const l=Math.hypot(mx,my);mx/=l;my/=l;if(performance.now()/1000-mouse.t>=1.5)P.face=Math.atan2(my,mx);move(mx*sp*dt,my*sp*dt);stepT-=dt;if(stepT<=0){SND.step(run);stepT=run?.25:.42}P.noise=run?330:70}else P.noise=0;
+ if((mx||my)&&sp>0){const l=Math.hypot(mx,my);mx/=l;my/=l;if(performance.now()/1000-mouse.t>=1.5)P.face=Math.atan2(my,mx);move(mx*sp*dt,my*sp*dt);stepT-=dt;if(stepT<=0){SND.step(run);stepT=run?.25:.42}P.noise=run?330:P.crouch?0:70;if(P.crouch)stepT+=dt*.5}else P.noise=0;
  if(S.pendingSlam){const d=S.pendingSlam;if(P.room===d.n&&!(Math.abs(P.x-(d.x*T+16))<30&&Math.abs(P.y-(d.y*T+16))<30)){d.open=false;d.sealed=true;S.pendingSlam=null;SND.door()}}
  unstuck();
  const ti=idx(Math.floor(P.x/T),Math.floor(P.y/T));if(tiles[ti]===1){const r=rooms[rmap[ti]];if(r&&r.n!==P.room)enterRoom(r)}
@@ -213,6 +232,7 @@ function update(dt){
   if(o.t==='fake'&&d<44){o.gone=true;damage(35,'dupe');msg('Это был Дюп! Неправильная дверь.',3);tone(70,.8,'sawtooth',.25,40)}
   if(o.t==='snare'&&!o.used&&d<18&&!P.hidden){o.used=true;P.stun=1.6;SND.snare();damage(12,'snare');msg('Капкан!',2)}
   if(o.t==='fire'&&d<24&&P.fireCd<=0){P.fireCd=.8;damage(18,'fire')}}
+ if(!P.hidden&&(held('lighter')||held('candle'))){if(held('lighter')){P.fuel-=dt*2;if(P.fuel<=0){P.fuel=0;removeItem('lighter');msg('Зажигалка выгорела')}}}
  if(P.light){P.bat-=dt*1.5;if(P.bat<=0){P.bat=0;P.light=false;msg('Батарейка села')}}
  if(S.flick>0){S.flick-=dt;if(Math.random()<dt*8)SND.flick()}
  // hide
@@ -297,8 +317,9 @@ function render(){
   if(r.t==='reception'){X.fillStyle='#d9b86a';X.font='bold 14px Arial';X.textAlign='center';X.fillText('РЕСЕПШЕН',(r.x0+8)*T+16,(r.y0+1)*T+20)}
   if(r.t==='library'){X.fillStyle='#d9b86a';X.font='bold 14px Arial';X.textAlign='center';X.fillText('БИБЛИОТЕКА',(r.x0+r.w/2)*T,(r.y0+1)*T+20)}}
  // player
- if(!P.hidden){X.save();X.translate(P.x,P.y);X.rotate(P.face);X.fillStyle=P.hurtT>0?'#f66':'#e8c8a0';X.beginPath();X.arc(0,0,10,0,7);X.fill();X.fillStyle='#345';X.beginPath();X.arc(-2,0,8,Math.PI/2,Math.PI*1.5);X.fill();X.fillStyle='#111';X.fillRect(5,-5,3,3);X.fillRect(5,2,3,3);
-  if(P.inv.includes('flashlight')&&held('flashlight')||P.light){X.fillStyle='#888';X.fillRect(8,4,8,4)}if(held('crucifix')){X.fillStyle='#eee';X.fillRect(10,-10,3,12);X.fillRect(7,-7,9,3)}X.restore()}
+ for(const d of S.drops)if(Math.abs(d.room-P.room)<=2){X.fillStyle='rgba(0,0,0,.35)';X.beginPath();X.ellipse(d.x,d.y+8,10,3,0,0,7);X.fill();drawIcon(X,d.it,d.x,d.y,22)}
+ if(!P.hidden){X.save();X.translate(P.x,P.y);if(P.crouch){X.fillStyle='rgba(0,0,0,.4)';X.beginPath();X.arc(0,0,13,0,7);X.fill();X.scale(.72,.72)}X.rotate(P.face);X.fillStyle=P.hurtT>0?'#f66':'#e8c8a0';X.beginPath();X.arc(0,0,10,0,7);X.fill();X.fillStyle='#345';X.beginPath();X.arc(-2,0,8,Math.PI/2,Math.PI*1.5);X.fill();X.fillStyle='#111';X.fillRect(5,-5,3,3);X.fillRect(5,2,3,3);
+  if(P.inv[P.sel]){X.save();X.translate(13,6);X.rotate(Math.PI/2);drawIcon(X,P.inv[P.sel],0,0,16);X.restore()}else if(P.light){X.fillStyle='#888';X.fillRect(8,4,8,4)}X.restore();if(P.crouch){X.fillStyle='#9cf';X.font='10px Arial';X.textAlign='center';X.fillText('присед',P.x,P.y-16)}}
  // entities under lighting
  const f=S.figure;if(f&&Math.abs(f.room-P.room)<=1){X.fillStyle='#5a1a10';X.beginPath();X.ellipse(f.x,f.y,18,15,0,0,7);X.fill();X.fillStyle='#a03018';X.beginPath();X.arc(f.x+6,f.y,8,0,7);X.fill();X.fillStyle='#f4a080';for(let i=-2;i<=2;i++)X.fillRect(f.x+10,f.y+i*3-1,5,2)}
  if(S.halt&&S.halt.phase!=='idle'){const h=S.halt;X.globalAlpha=h.phase==='chase'?.6+.3*Math.sin(t*6):.25+.15*Math.sin(t*20);X.fillStyle='#6af';X.beginPath();X.arc(h.x,P.y,16,0,7);X.fill();X.fillStyle='#013';X.fillRect(h.x-7,P.y-5,4,4);X.fillRect(h.x+3,P.y-5,4,4);X.globalAlpha=1}
@@ -309,6 +330,7 @@ function render(){
  LX.globalCompositeOperation='source-over';LX.clearRect(0,0,W,H);LX.fillStyle='rgba(0,0,0,'+dk+')';LX.fillRect(0,0,W,H);LX.globalCompositeOperation='destination-out';
  const sx=P.x-cx,sy=P.y-cy;light(sx,sy,room.dark?75:120,.85);
  if(!(S.flick>0&&Math.random()<.5))for(let n=Math.max(0,P.room-2);n<=Math.min(100,P.room+2);n++)for(const l of rooms[n].lamps)light(l.x-cx,l.y-cy+20,210,.8);
+ if(!P.hidden&&(held('lighter')||held('candle'))){const rr=held('lighter')?150:120+Math.sin(t*9)*4;const g=LX.createRadialGradient(sx,sy,5,sx,sy,rr);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');LX.fillStyle=g;LX.beginPath();LX.arc(sx,sy,rr,0,7);LX.fill()}
  if(P.light&&!P.hidden){const g=LX.createRadialGradient(sx,sy,10,sx,sy,330);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');LX.fillStyle=g;LX.beginPath();LX.moveTo(sx,sy);LX.arc(sx,sy,330,P.face-.42,P.face+.42);LX.closePath();LX.fill()}
  if(S.eyes)light(S.eyes.x-cx,S.eyes.y-cy,170,.6);
  for(const e of S.ents)if(e.state==='go')light(e.x-cx,e.y-cy,260,.95);
@@ -332,8 +354,8 @@ function drawHUD(){const room=rooms[P.room];X.textAlign='left';btns=[];
  X.fillStyle='#fd4';X.font='14px Arial';X.fillText('Золото: '+P.gold,20,75);X.fillStyle='#bfb';X.fillText('Батарея: '+Math.ceil(P.bat)+'%'+(P.light?' (вкл)':''),120,75);
  X.fillStyle='#223';X.fillRect(20,58,200,4);X.fillStyle=P.tired?'#a55':'#6cf';X.fillRect(20,58,2*P.st,4);
  X.fillStyle='#aaa';X.font='11px Arial';X.fillText(room.t==='library'?'Код: '+[0,1,2,3,4].map(i=>S.books[i]||'_').join(' '):room.t==='electric'?'Предохранители: '+S.fuses+'/10':'Рекорд: '+pad(P.best),20,94);
- for(let i=0;i<5;i++){const x=W/2-150+i*62,y=H-62;box(x,y,56,52);if(i===P.sel){X.strokeStyle='#ffd86a';X.lineWidth=3;X.strokeRect(x,y,56,52)}X.fillStyle='#888';X.font='10px Arial';X.fillText(i+1,x+4,y+12);
-  const it=P.inv[i];if(it){X.fillStyle=ITEM[it].c;X.beginPath();X.arc(x+28,y+22,8,0,7);X.fill();X.fillStyle='#ddd';X.font='9px Arial';X.textAlign='center';X.fillText(ITEM[it].n,x+28,y+45);X.textAlign='left'}}
+ for(let i=0;i<10;i++){const x=W/2-250+i*50,y=H-58;box(x,y,46,50);if(i===P.sel){X.strokeStyle='#ffd86a';X.lineWidth=3;X.strokeRect(x,y,46,50)}X.fillStyle='#888';X.font='10px Arial';X.fillText((i+1)%10,x+4,y+12);
+  const it=P.inv[i];if(it){drawIcon(X,it,x+23,y+22,28);if(i===P.sel){X.fillStyle='#ddd';X.font='11px Arial';X.textAlign='center';X.fillText(ITEM[it].n+(it==='lighter'?' '+Math.ceil(P.fuel)+'%':''),x+23,y-6);X.textAlign='left'}}}
  X.textAlign='center';
  if(started&&!S.dead&&!S.win&&S.codeInput===null&&!S.shop){const o=nearObj();let h='';if(P.hidden)h='[E] Выйти из укрытия';else if(o)h={dresser:'[E] Открыть ящик',wardrobe:'[E] Спрятаться в шкаф',bed:'[E] Спрятаться под кровать',desk:o.hasKey?'[E] Взять ключ':'[E] Спрятаться под стол',book:'[E] Взять книгу',fuse:'[E] Взять предохранитель',breaker:'[E] Включить рубильник',counter:'[E] Магазин'}[o.t];else{const d=nearLockedDoor();if(d)h=d.code?'[E] Ввести код':'[E] Отпереть'}
   if(h){X.fillStyle='#fff';X.font='16px Arial';X.fillText(h,W/2,H-80)}}
@@ -351,11 +373,11 @@ function drawHUD(){const room=rooms[P.room];X.textAlign='left';btns=[];
  if(touch&&started&&!S.dead&&!S.win){
   if(S.codeInput!==null){for(let d=0;d<10;d++){const bx=W/2-175+(d%5)*70,by=H/2+80+Math.floor(d/5)*50;addBtn(bx,by,60,42,'Digit'+d,''+d,0,1)}addBtn(W/2+180,H/2+80,70,42,'Enter','OK',0,1);addBtn(W/2+180,H/2+130,70,42,'Escape','✕',0,1)}
   else if(S.shop){for(let k=0;k<4;k++)addBtn(W/2-190,H/2-65+k*30,380,28,'Digit'+(k+1));addBtn(W/2+130,H/2+90,60,30,'Escape','✕',0,1)}
-  else if(!S.hb){addBtn(W-100,H-200,80,80,'KeyE','E',0,1);addBtn(W-190,H-110,80,80,'KeyF','F',0,1);addBtn(W-100,H-110,80,80,'ShiftLeft','Бег',1,1);for(let k=0;k<5;k++)addBtn(W/2-150+k*62,H-62,56,52,'Digit'+(k+1))}
+  else if(!S.hb){addBtn(W-100,H-200,80,80,'KeyE','E',0,1);addBtn(W-190,H-110,80,80,'KeyF','F',0,1);addBtn(W-100,H-110,80,80,'ShiftLeft','Бег',1,1);for(let k=0;k<10;k++)addBtn(W/2-250+k*50,H-58,46,50,'Digit'+((k+1)%10));addBtn(W-190,H-200,80,80,'KeyG','G',0,1);addBtn(W-280,H-200,80,80,'KeyC',P.crouch?'Встать':'Присед',0,1)}
   if(TM.id!==null){X.strokeStyle='rgba(255,255,255,.35)';X.lineWidth=3;X.beginPath();X.arc(TM.cx,TM.cy,60,0,7);X.stroke();X.fillStyle='rgba(255,255,255,.35)';X.beginPath();X.arc(TM.cx+TM.x*60,TM.cy+TM.y*60,24,0,7);X.fill()}
   else{X.fillStyle='rgba(255,255,255,.4)';X.font='13px Arial';X.fillText('Касание слева — джойстик',140,H-20)}}
  if(!started){X.fillStyle='rgba(0,0,0,.82)';X.fillRect(0,0,W,H);X.fillStyle='#d9b86a';X.font='bold 56px Georgia';X.fillText('DOORS 2D',W/2,150);X.font='18px Arial';X.fillStyle='#ccc';X.fillText('Фан-ремейк: Отель, двери 0–100',W/2,185);
-  ['WASD/стрелки — движение, Shift — бег (шумно!)','E — взаимодействие / спрятаться, F — фонарик','1–5 — выбор/использование предметов (распятие держи в руке)','Мышь — направление взгляда. На телефоне: джойстик слева, кнопки справа','','Нажми любую клавишу, чтобы начать'].forEach((s,i)=>X.fillText(s,W/2,250+i*30))}
+  ['WASD/стрелки — движение, Shift — бег (шумно!)','E — взаимодействие / спрятаться, F — фонарик','1–0 / колесо — 10 слотов, G — бросить, E — подобрать, C/Ctrl — присесть','Мышь — направление взгляда. На телефоне: джойстик слева, кнопки справа','','Нажми любую клавишу, чтобы начать'].forEach((s,i)=>X.fillText(s,W/2,250+i*30))}
  if(S.dead){X.fillStyle='rgba(0,0,20,.85)';X.fillRect(0,0,W,H);X.fillStyle='#c22';X.font='bold 48px Georgia';X.fillText('ТЫ ПОГИБ',W/2,170);X.fillStyle='#ddd';X.font='20px Arial';X.fillText('Дошёл до двери '+pad(P.best),W/2,215);
   X.fillStyle='#7cf';X.font='italic 18px Georgia';X.fillText('Лунный свет шепчет:',W/2,290);wrap(HINTS[S.dead]||'Будь осторожнее...',W/2,325,700,26);X.fillStyle='#fff';X.font='18px Arial';X.fillText('R / Enter / клик — заново',W/2,460)}
  if(S.win){X.fillStyle='rgba(20,20,0,.85)';X.fillRect(0,0,W,H);X.fillStyle='#fd4';X.font='bold 48px Georgia';X.fillText('ПОБЕДА!',W/2,200);X.fillStyle='#fff';X.font='20px Arial';X.fillText('Свет включён, Фигура повержена — ты сбежал из отеля!',W/2,260);X.fillText('Золото: '+P.gold,W/2,300);X.fillText('R / Enter — сыграть снова',W/2,380)}}
