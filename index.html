@@ -139,7 +139,7 @@ function startRush(amb){const n=P.room,a=rooms[Math.max(0,n-3)],b=rooms[Math.min
 function mkFigure(r){let x=r.x0+Math.floor(r.w/2),y=r.y0+Math.floor(r.h/2);for(let k=0;k<200&&!passable(x,y);k++){x=ri(r.x0+1,r.x0+r.w-2);y=ri(r.y0+1,r.y0+r.h-2)}SND.figure();return{x:x*T+16,y:y*T+16,room:r.n,path:[],pt:1,target:null,alert:false,wait:2.5}}
 function randomFloor(r){for(let k=0;k<200;k++){const x=ri(r.x0+1,r.x0+r.w-2),y=ri(r.y0+1,r.y0+r.h-2);if(passable(x,y))return{x:x*T+16,y:y*T+16}}return{x:r.x0*T+64,y:r.y0*T+64}}
 function enterRoom(r){P.room=r.n;P.roomT=0;if(r.n>P.best)P.best=r.n;if(S.eyes&&S.eyes.room!==r.n)S.eyes=null;if(r.t!=='halt')S.halt=null;
- if(S.seek&&(r.n===42||r.n===89)){S.seek=null;const d=doors[r.n-1];d.open=false;d.sealed=true;SND.door();msg('Ты оторвался от Сека!',3)}
+ if(S.seek&&(r.n===42||r.n===89)){S.seek=null;S.pendingSlam=doors[r.n-1];msg('Ты оторвался от Сека!',3)}
  if(r.visited)return;r.visited=true;
  if(r.n>0)msg('Дверь '+pad(r.n)+(r.dark?' — темно...':''),2);
  if(r.t==='chase'&&(r.n===36||r.n===83)){S.ents=[];S.seek={x:P.x-240,y:P.y,wait:1.2};S.trail=[];SND.seek();msg('СЕК! БЕГИ! (Shift)',3)}
@@ -155,6 +155,7 @@ function enterRoom(r){P.room=r.n;P.roomT=0;if(r.n>P.best)P.best=r.n;if(S.eyes&&S
 let stepT=0;
 function solidPx(px,py){return !passable(Math.floor(px/T),Math.floor(py/T))}
 function hit(x,y){const r=10;return solidPx(x-r,y-r)||solidPx(x+r,y-r)||solidPx(x-r,y+r)||solidPx(x+r,y+r)}
+function unstuck(){if(!hit(P.x,P.y))return;for(let rad=2;rad<=96;rad+=2)for(let a=0;a<16;a++){const nx=P.x+Math.cos(a*Math.PI/8)*rad,ny=P.y+Math.sin(a*Math.PI/8)*rad;if(!hit(nx,ny)){P.x=nx;P.y=ny;return}}}
 function move(dx,dy){if(!hit(P.x+dx,P.y))P.x+=dx;if(!hit(P.x,P.y+dy))P.y+=dy}
 function update(dt){
  S.t+=dt;frames++;if(S.msgT>0)S.msgT-=dt;if(S.shake>0)S.shake-=dt;if(S.sign>0)S.sign-=dt;if(P.hurtT>0)P.hurtT-=dt;
@@ -166,6 +167,8 @@ function update(dt){
  const sp=(run?205:115)*(P.vit>0?1.3:1)*(P.stun>0?0:1);
  if(performance.now()/1000-mouse.t<1.5)P.face=Math.atan2(mouse.y-H/2,mouse.x-W/2);
  if((mx||my)&&sp>0){const l=Math.hypot(mx,my);mx/=l;my/=l;if(performance.now()/1000-mouse.t>=1.5)P.face=Math.atan2(my,mx);move(mx*sp*dt,my*sp*dt);stepT-=dt;if(stepT<=0){SND.step(run);stepT=run?.25:.42}P.noise=run?330:70}else P.noise=0;
+ if(S.pendingSlam){const d=S.pendingSlam;if(P.x-12>(d.x+1)*T+2&&!P.hidden){d.open=false;d.sealed=true;S.pendingSlam=null;SND.door()}}
+ unstuck();
  const tx=Math.floor(P.x/T),r=rooms[colRoom[tx]];if(r&&r.n!==P.room&&tx>r.x0&&tx<r.x0+r.w-1)enterRoom(r);
  // doors
  for(const d of [doors[P.room-1],doors[P.room]]){if(!d||d.open||d.locked||d.code||d.sealed)continue;if(Math.hypot(d.x*T+16-P.x,d.y*T+16-P.y)<48){d.open=true;SND.door()}}
