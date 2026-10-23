@@ -3,3 +3,10 @@ services:
     name: doors2d-remade
     runtime: static
     staticPublishPath: ./
+  - type: web
+    name: doors2d-remade-online
+    runtime: node
+    plan: free
+    buildCommand: npm install --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /healthz

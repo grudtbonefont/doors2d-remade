@@ -4,7 +4,8 @@
 const C=document.getElementById('c'),X=C.getContext('2d');const W=960,H=600,T=32;let GH=160;
 const L=document.createElement('canvas');L.width=W;L.height=H;const LX=L.getContext('2d');
 function fit(){const s=Math.min(innerWidth/W,innerHeight/H);C.style.width=W*s+'px';C.style.height=H*s+'px';}addEventListener('resize',fit);fit();
-const rnd=(a,b)=>a+Math.random()*(b-a),ri=(a,b)=>Math.floor(rnd(a,b+1)),pick=a=>a[Math.floor(Math.random()*a.length)];
+let RNG=Math.random,SEED=0,START=0;function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rnd=(a,b)=>a+RNG()*(b-a),ri=(a,b)=>Math.floor(rnd(a,b+1)),pick=a=>a[Math.floor(RNG()*a.length)];
 const pad=n=>String(n).padStart(3,'0');const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const angDiff=(a,b)=>{let d=(a-b)%(Math.PI*2);if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;return Math.abs(d)};
 // ---------- AUDIO ----------
@@ -12,7 +13,7 @@ let AC=null,MG=null,VOL=+(localStorage.getItem('d2vol')||.8),MUTE=localStorage.g
 function au(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();MG=AC.createGain();MG.connect(AC.destination);setVol();loadAudio()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();}
 function setVol(){if(MG)MG.gain.setTargetAtTime(MUTE?0:VOL,AC.currentTime,.05);try{localStorage.setItem('d2vol',VOL);localStorage.setItem('d2mute',MUTE?'1':'0')}catch(e){}}
 // Fixed list of audio file names (see AUDIO_README.txt). Missing files fall back to WebAudio synth.
-const AUDIO_FILES=['door_open','door_creak','door_slam','door_locked','door_unlock','step_walk','step_run','step_crouch','drawer_open','pickup','gold','wardrobe_in','wardrobe_out','light_buzz','light_flicker','rush','rush_rumble','ambush','screech_psst','screech_bite','eyes_hum','halt_static','seek_chase','seek_eyes','figure_step','figure_growl','heartbeat','rain','music_hotel','music_library','music_shop','music_door100','death','win'];
+const AUDIO_FILES=['door_open','door_creak','door_slam','door_locked','door_unlock','step_walk','step_run','step_crouch','drawer_open','pickup','gold','wardrobe_in','wardrobe_out','light_buzz','light_flicker','rush','rush_rumble','ambush','screech_psst','screech_bite','eyes_hum','halt_static','seek_chase','seek_eyes','figure_step','figure_growl','heartbeat','rain','music_hotel','music_library','music_shop','music_door100','elevator','lobby','death','win'];
 const BUF={};const OGG=!!document.createElement('audio').canPlayType('audio/ogg; codecs=vorbis');let audioLoaded=0;
 function loadAudio(){for(const n of AUDIO_FILES){const tryExt=(ex,i)=>{if(i>=ex.length)return;fetch('audio/'+n+'.'+ex[i]).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(a=>AC.decodeAudioData(a)).then(b=>{BUF[n]=b;audioLoaded++}).catch(()=>tryExt(ex,i+1))};tryExt(OGG?['ogg','mp3','wav']:['mp3','ogg','wav'],0)}}
 function play(n,v=1,rate=1){if(!AC||!BUF[n])return false;const s=AC.createBufferSource(),g=AC.createGain();s.buffer=BUF[n];s.playbackRate.value=rate;g.gain.value=v;s.connect(g).connect(MG);s.start();return true}
@@ -20,7 +21,7 @@ const LOOPS={};// slot -> {name,src,g}
 function setLoop(slot,n,v=.5,fade=1.5){if(!AC)return;const cur=LOOPS[slot],t=AC.currentTime;if(cur&&cur.name===n){cur.g.gain.setTargetAtTime(v,t,.3);return}
  if(cur){cur.g.gain.setTargetAtTime(0,t,fade/3);const s=cur.src;setTimeout(()=>{try{s.stop()}catch(e){}},fade*1500);delete LOOPS[slot]}
  if(!n||!BUF[n])return;const s=AC.createBufferSource(),g=AC.createGain();s.buffer=BUF[n];s.loop=true;g.gain.value=0;g.gain.setTargetAtTime(v,t,fade/3);s.connect(g).connect(MG);s.start();LOOPS[slot]={name:n,src:s,g}}
-const CREDITS=[['Kenney — RPG Audio (двери, скрип, замок, монеты, шкафы, подбор)','kenney.nl/assets/rpg-audio','CC0'],['Kenney — Impact Sounds (шаги, ящик, шаги Фигуры)','kenney.nl/assets/impact-sounds','CC0'],['Kenney — Sci-Fi Sounds (гул Глаз, гул Раша)','kenney.nl/assets/sci-fi-sounds','CC0'],['Kenney — Interface Sounds (мигание света)','kenney.nl/assets/interface-sounds','CC0'],['rubberduck — 80 CC0 creature SFX (Эмбуш, Скрич, Сик, Фигура)','opengameart.org/content/80-cc0-creature-sfx','CC0'],['trazzz123 — CC0 Deep Monster Roar (Раш)','opengameart.org/content/cc0-deep-monster-roar','CC0'],['qubodup — Ghost breath (Скрич «псст»)','opengameart.org/content/ghost-breath','CC0'],['qubodup — Heartbeat (single sound)','opengameart.org/content/heartbeat-single-sound','CC0'],['bretbernhoft — Frequency Static (Халт)','opengameart.org/content/frequency-static-sound-effects','CC0'],['themightyglider — Electric Buzz (лампы)','opengameart.org/content/electric-buzz','CC0'],['wuxiascrub — Rain + Long Thunder','opengameart.org/content/rain-long-thunder','CC0'],['cleytonkauffman — Ambient Horror Track 01 (отель)','opengameart.org/content/ambient-horror-track-01','CC0'],['epb9000 — Creepy Ambient Loop (библиотека)','opengameart.org/content/creepy-ambient-loop','CC0'],['joth — Bossa Nova (магазин Джеффа)','opengameart.org/content/bossa-nova','CC0'],['killerfishred — Menace Synth Track (дверь 100)','opengameart.org/content/menace-synth-track','CC0'],['wolfgang — Chase! (погоня Сика)','opengameart.org/content/chase','CC0'],['robin-lamb — Game Over Dark Short Music Clips (смерть)','opengameart.org/content/game-over-dark-short-music-clips','CC0'],['umplix — Level Complete! (победа)','opengameart.org/content/level-complete','CC0']];
+const CREDITS=[['Pro Sensory (Alex McCulloch) — Elevator Music / Elevator Music 2 (лифт, лобби)','opengameart.org/content/elevator-music','CC0'],['Kenney — RPG Audio (двери, скрип, замок, монеты, шкафы, подбор)','kenney.nl/assets/rpg-audio','CC0'],['Kenney — Impact Sounds (шаги, ящик, шаги Фигуры)','kenney.nl/assets/impact-sounds','CC0'],['Kenney — Sci-Fi Sounds (гул Глаз, гул Раша)','kenney.nl/assets/sci-fi-sounds','CC0'],['Kenney — Interface Sounds (мигание света)','kenney.nl/assets/interface-sounds','CC0'],['rubberduck — 80 CC0 creature SFX (Эмбуш, Скрич, Сик, Фигура)','opengameart.org/content/80-cc0-creature-sfx','CC0'],['trazzz123 — CC0 Deep Monster Roar (Раш)','opengameart.org/content/cc0-deep-monster-roar','CC0'],['qubodup — Ghost breath (Скрич «псст»)','opengameart.org/content/ghost-breath','CC0'],['qubodup — Heartbeat (single sound)','opengameart.org/content/heartbeat-single-sound','CC0'],['bretbernhoft — Frequency Static (Халт)','opengameart.org/content/frequency-static-sound-effects','CC0'],['themightyglider — Electric Buzz (лампы)','opengameart.org/content/electric-buzz','CC0'],['wuxiascrub — Rain + Long Thunder','opengameart.org/content/rain-long-thunder','CC0'],['cleytonkauffman — Ambient Horror Track 01 (отель)','opengameart.org/content/ambient-horror-track-01','CC0'],['epb9000 — Creepy Ambient Loop (библиотека)','opengameart.org/content/creepy-ambient-loop','CC0'],['joth — Bossa Nova (магазин Джеффа)','opengameart.org/content/bossa-nova','CC0'],['killerfishred — Menace Synth Track (дверь 100)','opengameart.org/content/menace-synth-track','CC0'],['wolfgang — Chase! (погоня Сика)','opengameart.org/content/chase','CC0'],['robin-lamb — Game Over Dark Short Music Clips (смерть)','opengameart.org/content/game-over-dark-short-music-clips','CC0'],['umplix — Level Complete! (победа)','opengameart.org/content/level-complete','CC0']];
 let showCredits=false;
 function tone(f,d,type='sine',v=.15,f2){if(!AC)return;const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(MG);o.start();o.stop(t+d);}
 function noise(d,v=.2,ff=800,type='lowpass'){if(!AC)return;const t=AC.currentTime,b=AC.createBuffer(1,Math.floor(AC.sampleRate*d),AC.sampleRate),a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1;const s=AC.createBufferSource();s.buffer=b;const f=AC.createBiquadFilter();f.type=type;f.frequency.value=ff;const g=AC.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(f).connect(g).connect(MG);s.start();}
@@ -39,10 +40,10 @@ const SND={...SY,door:()=>{if(play('door_open',.8,rnd(.9,1.1))){if(Math.random()
  hideIn:P_('wardrobe_in',.8,SY.door),hideOut:P_('wardrobe_out',.8,SY.door),halt:()=>{if(!play('halt_static',.5))SY.halt()},holy:SY.holy};
 let thunderT=20;
 function audioTick(dt){if(!AC)return;const room=rooms[P.room]||{};let m=null;
- if(started&&!S.dead&&!S.win){m=S.seek?'seek_chase':room.t==='library'?'music_library':room.t==='electric'?'music_door100':room.t==='shop'?'music_shop':'music_hotel'}
- setLoop('music',m,m==='seek_chase'?.6:m==='music_shop'?.35:.3,2);
+ if(!started){m=NET.party?'elevator':showCredits?null:'lobby'}else if(!S.dead&&!S.win){m=S.seek?'seek_chase':room.t==='library'?'music_library':room.t==='electric'?'music_door100':room.t==='shop'?'music_shop':'music_hotel'}
+ setLoop('music',m,m==='elevator'||m==='lobby'?.45:m==='seek_chase'?.6:m==='music_shop'?.35:.3,2);
  setLoop('amb',started&&!S.dead?'rain':null,room.dark?.1:.2,2);
- setLoop('ent',S.halt&&room.t==='halt'&&S.halt.phase!=='idle'?'halt_static':S.eyes&&S.eyes.room===P.room?'eyes_hum':null,S.halt&&room.t==='halt'?(S.halt.phase==='chase'?.35:.15):.4,.6);
+ setLoop('ent',S.halt&&room.t==='halt'&&S.halt.phase!=='idle'&&S.halt.phase!=='banished'?'halt_static':S.eyes&&S.eyes.room===P.room?'eyes_hum':null,S.halt&&room.t==='halt'?(S.halt.phase==='chase'?.35:.15):.4,.6);
  const f=S.figure;if(f&&f.room===P.room&&!S.dead){f.stepT=(f.stepT||0)-dt;if(f.stepT<=0){f.stepT=f.alert?.4:.8;const v=Math.max(0,1-dist(f,P)/600);if(v>0)play('figure_step',v*.9,rnd(.85,1))}}}
 // ---------- DATA ----------
 const ITEM={flashlight:{n:'Фонарик',c:'#ff8'},battery:{n:'Батарейка',c:'#6f6'},lockpick:{n:'Отмычка',c:'#bbb'},vitamins:{n:'Витамины',c:'#f80'},crucifix:{n:'Распятие',c:'#eee'},key:{n:'Ключ',c:'#fd4'},lighter:{n:'Зажигалка',c:'#f63'},candle:{n:'Свеча',c:'#ffe9b0'}};
@@ -83,9 +84,9 @@ function gen(){
  for(let n=0;n<=100;n++){let t='normal',w=ri(12,18),h=ri(8,12);
   if(n===0){t='reception';w=16;h=12}else if(n===50){t='library';w=30;h=22}else if(n===52){t='shop';w=14;h=10}else if(n===100){t='electric';w=30;h=20}
   else if(halts.has(n)){t='halt';w=40;h=5}else if((n>=36&&n<=41)||(n>=83&&n<=88)){t='chase';w=ri(18,24);h=9}else if(n>=90&&n<=98){t='greenhouse';w=ri(16,22);h=ri(11,14)}
-  const r={n,x0:1,y0:80-Math.floor(h/2),w,h,t,dir:'E',dark:t==='greenhouse'||(t==='normal'&&n>=8&&Math.random()<.22),eyesWall:(n>=30&&n<=35)||(n>=78&&n<=82),visited:false,objs:[],lamps:[],cds:[]};
+  const r={n,x0:1,y0:80-Math.floor(h/2),w,h,t,dir:'E',dark:t==='greenhouse'||(t==='normal'&&n>=8&&RNG()<.22),eyesWall:(n>=30&&n<=35)||(n>=78&&n<=82),visited:false,objs:[],lamps:[],cds:[]};
   if(cur){const simple=(t==='normal'||t==='greenhouse')&&(cur.t==='normal'||cur.t==='greenhouse')&&n>2;let dir='E';
-   if(simple&&Math.random()<.4){const o=[];if(vdir!==-1&&cur.y0-h>4)o.push('N');if(vdir!==1&&cur.y0+cur.h+h<GH-4)o.push('S');if(o.length)dir=pick(o)}
+   if(simple&&RNG()<.4){const o=[];if(vdir!==-1&&cur.y0-h>4)o.push('N');if(vdir!==1&&cur.y0+cur.h+h<GH-4)o.push('S');if(o.length)dir=pick(o)}
    if(dir==='E'){r.x0=cur.x0+cur.w-1;r.y0=Math.max(2,Math.min(GH-h-2,cur.y0+Math.floor(cur.h/2)-Math.floor(h/2)+(t==='halt'||cur.t==='halt'?0:ri(-1,1))));vdir=0}
    else{r.w=Math.min(w,cur.w);r.x0=cur.x0+cur.w-r.w;r.y0=dir==='N'?cur.y0-h+1:cur.y0+cur.h-1;vdir=dir==='N'?1:-1}
    r.dir=dir}
@@ -97,7 +98,7 @@ function gen(){
   else{let lo=Math.max(a.x0,b.x0)+1,hi=Math.min(a.x0+a.w,b.x0+b.w)-2;if(hi-lo>=2){lo++;hi--}d={x:ri(lo,hi),y:b.dir==='N'?a.y0:b.y0}}
   Object.assign(d,{n,room:n,dir:b.dir,open:false,locked:false,code:false,sealed:false});tiles[idx(d.x,d.y)]=2;doors.push(d);allDoors.push(d);doorAt.set(idx(d.x,d.y),d);a.east=d;b.west=d}
  // side closets (branches)
- for(const r of rooms){if(r.t!=='normal'||r.n<2||Math.random()>.3)continue;const cw=ri(5,7),ch=5,up=Math.random()<.5;
+ for(const r of rooms){if(r.t!=='normal'||r.n<2||RNG()>.3)continue;const cw=ri(5,7),ch=5,up=RNG()<.5;
   const c={x0:r.x0+ri(1,Math.max(1,r.w-cw-1)),y0:up?r.y0-ch+1:r.y0+r.h-1,w:cw,h:ch};if(c.x0+cw>r.x0+r.w-1)continue;
   if(rooms.some(q=>q!==r&&rectHit(c,q))||rooms.some(q=>q.cl&&q.cl.some(k=>rectHit(c,k))))continue;
   const dx=c.x0+Math.floor(cw/2),dy=up?r.y0:r.y0+r.h-1;if(allDoors.some(d=>Math.abs(d.x-dx)<=2&&Math.abs(d.y-dy)<=2))continue;
@@ -106,7 +107,7 @@ function gen(){
   for(let yy=c.y0;yy<c.y0+ch;yy++)for(let xx=c.x0;xx<c.x0+cw;xx++)if(rmap[idx(xx,yy)]<0)rmap[idx(xx,yy)]=r.n;
   const d={n:0,closet:true,room:r.n,x:dx,y:dy,dir:up?'N':'S',open:false,locked:false,code:false,sealed:false};tiles[idx(dx,dy)]=2;allDoors.push(d);doorAt.set(idx(dx,dy),d);r.cds.push(d);(r.cl=r.cl||[]).push(Object.assign(c,{up}))}
  doors[0].locked=true;
- for(let n=2;n<=99;n++){const a=rooms[n-1],b=rooms[n];if(a.t==='normal'&&b.t==='normal'&&Math.random()<.2)doors[n-1].locked=true}
+ for(let n=2;n<=99;n++){const a=rooms[n-1],b=rooms[n];if(a.t==='normal'&&b.t==='normal'&&RNG()<.2)doors[n-1].locked=true}
  doors[50].code=true;
  for(let n=37;n<=42;n++)doors[n-1].open=true;for(let n=84;n<=89;n++)doors[n-1].open=true;
  libCode='';for(let i=0;i<5;i++)libCode+=ri(0,9);
@@ -122,11 +123,11 @@ function gen(){
    for(let i=0;i<nd;i++){const p=take(edges);if(p)put(r,'dresser',p[0],p[1],{key:i===keyD})}
    if(keyD>=0&&!r.objs.some(o=>o.key)){const p=take(ints);put(r,'dresser',p[0],p[1],{key:true})}
    const nw=ri(1,2);for(let i=0;i<nw;i++){const p=take(edges);if(p)put(r,'wardrobe',p[0],p[1])}
-   if(Math.random()<.35){const p=take(edges);if(p)put(r,'bed',p[0],p[1])}
+   if(RNG()<.35){const p=take(edges);if(p)put(r,'bed',p[0],p[1])}
    if(r.t==='greenhouse'){for(let i=0;i<Math.floor(ints.length*.08);i++){const p=take(ints);if(p)put(r,'plant',p[0],p[1])}
     const A=innerOf(r.west,r),B=innerOf(r.east,r);if(!bfs(r,A[0],A[1],B[0],B[1])){for(const o of r.objs.filter(o=>o.t==='plant'&&o.y!==r.y0+1&&o.y!==r.y0+r.h-2)){o.gone=true;solidObj.delete(idx(o.x,o.y))}}
     for(let i=0;i<ri(4,7);i++){const p=take(ints);if(p)put(r,'snare',p[0],p[1])}}
-   if(r.t==='normal'&&r.n>=20&&r.east&&r.east.dir==='E'&&!r.east.locked&&r.n<99&&Math.random()<.12){r.dupe=true;const lo=r.y0+1,hi=r.y0+r.h-2;const pv=rooms[r.n-1],q=innerOf(r.west,pv);for(let k=0;k<60;k++){const xx=q[0]+ri(-3,3),yy=q[1]+ri(-3,3);if(rmap[idx(xx,yy)]===pv.n&&tiles[idx(xx,yy)]===1&&!occ.has(idx(xx,yy))&&!nearDoor(pv,xx,yy)){put(pv,'clue',xx,yy,{num:r.n+1});break}}
+   if(r.t==='normal'&&r.n>=20&&r.east&&r.east.dir==='E'&&!r.east.locked&&r.n<99&&RNG()<.12){r.dupe=true;const lo=r.y0+1,hi=r.y0+r.h-2;const pv=rooms[r.n-1],q=innerOf(r.west,pv);for(let k=0;k<60;k++){const xx=q[0]+ri(-3,3),yy=q[1]+ri(-3,3);if(rmap[idx(xx,yy)]===pv.n&&tiles[idx(xx,yy)]===1&&!occ.has(idx(xx,yy))&&!nearDoor(pv,xx,yy)){put(pv,'clue',xx,yy,{num:r.n+1});break}}
     const used=[r.east.y];for(let k=0;k<2;k++){for(let tr=0;tr<20;tr++){const yy=ri(lo,hi);if(used.every(u=>Math.abs(u-yy)>=2)){used.push(yy);put(r,'fake',r.x0+r.w-1,yy,{num:r.n+1+pick([-1,1,2,3]),room:r.n});break}}}}
    if(r.cl)for(const c of r.cl){const yy=c.up?c.y0+1:c.y0+c.h-2;put(r,'dresser',c.x0+1,yy);put(r,'dresser',c.x0+c.w-2,yy,{rich:true})}
    lamps(2)}
@@ -144,13 +145,15 @@ function gen(){
 }
 // ---------- STATE ----------
 let P,S,K={},mouse={x:0,y:0,t:-9},started=false,frames=0;
-function reset(){gen();const r=rooms[0];
+function reset(o){o=o||{};SEED=o.seed!=null?o.seed:(Math.random()*2147483647|0);START=o.start||0;RNG=mulberry(SEED);gen();RNG=Math.random;const r=rooms[0];
  P={x:(r.x0+3)*T+16,y:(r.y0+Math.floor(r.h/2))*T+16,hp:100,gold:0,face:0,inv:['flashlight',null,null,null,null,null,null,null,null,null],fuel:100,crouch:false,sel:0,bat:100,light:false,hidden:null,hideT:0,stun:0,vit:0,room:0,best:0,noise:0,roomT:0,hurtT:0,fireCd:0,st:100,tired:false};
  S={t:0,ents:[],msg:'',msgT:0,flick:0,dead:null,win:false,codeInput:null,shop:false,books:[],seek:null,trail:[],trailT:0,halt:null,sign:0,fuses:0,figure:null,screech:null,eyes:null,shake:0,hb:null,pendingSlam:null,drops:[]};
- msg('Ресепшен. Ключ от двери 001 лежит на стойке.',5)}
+ msg('Ресепшен. Ключ от двери 001 лежит на стойке.',5);applyStart()}
+function applyStart(){if(!START)return;const n=START===50?49:89;for(let k=0;k<n;k++){const d=doors[k];if(d){d.open=true;d.locked=false;d.code=false}rooms[k].visited=true}
+ const r=rooms[n],p=randomFloor(r);P.x=p.x;P.y=p.y;P.gold=START===50?40:90;P.inv[1]='lighter';if(START===90)P.inv[2]='crucifix';enterRoom(r);P.best=n;msg('Старт с двери '+pad(n),3)}
 function msg(t,d=3){S.msg=t;S.msgT=d}
-function damage(a,c){if(S.dead||S.win)return;P.hp-=a;P.hurtT=.3;S.shake=.3;SND.hurt();if(P.hp<=0){P.hp=0;S.dead=c}}
-function die(c){if(!S.dead){P.hp=0;S.dead=c;SND.hurt();SND.death();S.shake=.5}}
+function damage(a,c){if(S.dead||S.win||P.iv>0)return;P.hp-=a;P.hurtT=.3;S.shake=.3;SND.hurt();if(P.hp<=0)die(c)}
+function die(c){if(P.iv>0)return;if(!S.dead){P.hp=0;S.dead=c;S.deathT=0;P.hidden=null;SND.hurt();SND.death();S.shake=.8;netEv({k:'dead',c})}}
 function addItem(it){const i=P.inv.indexOf(null);if(i<0){msg('Инвентарь полон (10/10). Брось что-нибудь (G)');return false}P.inv[i]=it;return true}
 const held=n=>P.inv[P.sel]===n;
 function removeItem(n){const i=P.inv[P.sel]===n?P.sel:P.inv.indexOf(n);if(i>=0)P.inv[i]=null;if(n==='flashlight'&&!P.inv.includes('flashlight'))P.light=false}
@@ -158,7 +161,7 @@ function dropItem(){const it=P.inv[P.sel];if(!it){msg('В руке ничего 
 function nearDrop(){let b=null,bd=34;for(const d of S.drops){const q=Math.hypot(d.x-P.x,d.y-P.y);if(q<bd){bd=q;b=d}}return b}
 function useSlot(i){P.sel=i;const it=P.inv[i];
   if(it==='battery'){P.bat=100;P.fuel=100;removeItem('battery');SND.pick();msg('Фонарик заряжен')}else if(it==='vitamins'){P.vit=7;P.hp=Math.min(100,P.hp+15);removeItem('vitamins');SND.pick();msg('Витамины: скорость!')}}
-function useCrucifix(name){removeItem('crucifix');SND.holy();msg('Распятие изгнало: '+name+'!',3)}
+function useCrucifix(name,x,y,verb){removeItem('crucifix');SND.holy();S.chain={x:x??P.x,y:y??P.y,t:1.6};msg('Распятие '+(verb||'изгнало')+': '+name+'!',3)}
 // ---------- INPUT ----------
 addEventListener('beforeunload',e=>{let a=false;try{a=S&&S.rooms&&!S.dead}catch(_){}if(a){e.preventDefault();e.returnValue=''}});
 addEventListener('keydown',e=>{au();K[e.code]=true;if(['Space','Tab','ShiftLeft','ShiftRight','KeyC','KeyE','KeyF','KeyG','KeyQ','KeyM','KeyW','KeyA','KeyS','KeyD','Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8','Digit9','Digit0'].includes(e.code)&&!e.ctrlKey&&!e.metaKey||['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(!e.repeat)handleKey(e.code)});
@@ -167,11 +170,12 @@ function handleKey(code){const e={code};
  if(code==='Minus'||code==='NumpadSubtract'||code==='BracketLeft'){VOL=Math.max(0,+(VOL-.1).toFixed(2));MUTE=false;setVol();msg('Громкость '+Math.round(VOL*100)+'%',1.2);return}
  if(code==='Equal'||code==='NumpadAdd'||code==='BracketRight'){VOL=Math.min(1,+(VOL+.1).toFixed(2));MUTE=false;setVol();msg('Громкость '+Math.round(VOL*100)+'%',1.2);return}
  if(code==='KeyK'&&(!started||S.dead||S.win)){showCredits=!showCredits;return}
- if(!started){if(showCredits){showCredits=false;return}started=true;return}
+ if(!started){if(showCredits){showCredits=false;showLobby(true);return}if(code==='Enter'&&document.activeElement.tagName!=='INPUT')soloStart();return}
  if(S.hb){const L=code==='KeyA'||code==='ArrowLeft',Rr=code==='KeyD'||code==='ArrowRight';if(!L&&!Rr)return;const b=S.hb;if((L?'L':'R')===b.side){b.k++;SND.heart();if(b.k>=b.need){S.hb=null;const f=S.figure;if(f){f.hbCd=8;f.target=randomFloor(rooms[f.room]);f.alert=false;f.pt=0}msg('Фигура ничего не услышала и ушла',2)}else{b.side=pick(['L','R']);b.t=1.1}}else{S.hb=null;die('figure')}return}
- if(S.dead||S.win){if(e.code==='KeyR'||e.code==='Enter')reset();return}
+ if(S.dead){if(e.code==='KeyV')deathAct('revive');else if(e.code==='KeyR'||e.code==='Enter')deathAct('again');return}
+ if(S.win){if(e.code==='KeyR'||e.code==='Enter'){if(NET.coop)toLobby();else reset({start:START})}return}
  if(S.codeInput!==null){if(/^Digit\d$/.test(e.code)&&S.codeInput.length<5)S.codeInput+=e.code[5];else if(e.code==='Backspace')S.codeInput=S.codeInput.slice(0,-1);else if(e.code==='Escape')S.codeInput=null;
-  else if(e.code==='Enter'){if(S.codeInput===libCode){doors[50].code=false;doors[50].open=true;SND.door();msg('Замок открыт!');S.figure=null}else{SND.bad();msg('Неверный код! Фигура услышала...');if(S.figure){S.figure.target={x:P.x,y:P.y};S.figure.alert=true;S.figure.pt=0}}S.codeInput=null}return}
+  else if(e.code==='Enter'){if(S.codeInput===libCode){doors[50].code=false;netEv({k:'door',n:50});doors[50].open=true;SND.door();msg('Замок открыт!');S.figure=null}else{SND.bad();msg('Неверный код! Фигура услышала...');if(S.figure){S.figure.target={x:P.x,y:P.y};S.figure.alert=true;S.figure.pt=0}}S.codeInput=null}return}
  if(S.shop){const m=/^Digit([1-4])$/.exec(e.code);if(m){const [it,pr]=SHOP[+m[1]-1];if(P.gold<pr){SND.bad();msg('Недостаточно золота')}else if(addItem(it)){P.gold-=pr;SND.gold();msg('Куплено: '+ITEM[it].n)}}else if(e.code==='Escape'||e.code==='KeyE')S.shop=false;return}
  if(e.code==='KeyE'){const d=!P.hidden&&nearDrop();if(d){if(addItem(d.it)){S.drops.splice(S.drops.indexOf(d),1);SND.pick();msg('Подобрано: '+ITEM[d.it].n,1.5)}}else interact()}
  if(e.code==='KeyG')dropItem();
@@ -184,12 +188,12 @@ function handleKey(code){const e={code};
 addEventListener('keyup',e=>{K[e.code]=false});
 addEventListener('wheel',e=>{if(started&&S.codeInput===null&&!S.shop)handleKey(e.deltaY>0?'WheelDown':'WheelUp')},{passive:true});
 C.addEventListener('mousemove',e=>{const b=C.getBoundingClientRect();mouse.x=(e.clientX-b.left)*W/b.width;mouse.y=(e.clientY-b.top)*H/b.height;mouse.t=performance.now()/1000});
-C.addEventListener('mousedown',()=>{au();if(!started)started=true;else if(S.dead||S.win)reset()});
+C.addEventListener('mousedown',ev=>{au();if(!started)return;if(S.dead){const b=C.getBoundingClientRect(),x=(ev.clientX-b.left)*W/b.width,y=(ev.clientY-b.top)*H/b.height;const d=DBTN.find(d=>x>=d.x&&x<=d.x+d.w&&y>=d.y&&y<=d.y+d.h);if(d)deathAct(d.act)}else if(S.win)handleKey('KeyR')});
 let touch=false,TM={x:0,y:0,id:null,cx:0,cy:0},btns=[],holdIds={};
 function addBtn(x,y,w,h,code,label,hold,draw){btns.push({x,y,w,h,code,hold});if(draw){X.fillStyle='rgba(255,255,255,.15)';X.fillRect(x,y,w,h);X.strokeStyle='rgba(255,255,255,.5)';X.lineWidth=2;X.strokeRect(x,y,w,h);X.fillStyle='#fff';X.font='bold 18px Arial';X.textAlign='center';X.fillText(label,x+w/2,y+h/2+6)}}
 function cpt(t){const b=C.getBoundingClientRect();return{x:(t.clientX-b.left)*W/b.width,y:(t.clientY-b.top)*H/b.height}}
 C.addEventListener('touchstart',e=>{e.preventDefault();au();touch=true;for(const t of e.changedTouches){const p=cpt(t);
- if(!started||S.dead||S.win){handleKey('Enter');continue}
+ if(!started)continue;if(S.dead){const d=DBTN.find(d=>p.x>=d.x&&p.x<=d.x+d.w&&p.y>=d.y&&p.y<=d.y+d.h);if(d)deathAct(d.act);continue}if(S.win){handleKey('KeyR');continue}
  const b=[...btns].reverse().find(b=>p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h);
  if(b){if(b.hold){K[b.code]=true;holdIds[t.identifier]=b.code}else handleKey(b.code);continue}
  if(p.x<W/2&&TM.id===null){TM.id=t.identifier;TM.cx=p.x;TM.cy=p.y;TM.x=TM.y=0}}},{passive:false});
@@ -210,18 +214,18 @@ function interact(){
   case 'desk':if(o.hasKey){if(addItem('key')){o.hasKey=false;SND.pick();msg('Ключ взят! Открой дверь 001 (E)')}}else{P.hidden=o;P.hideT=0;tone(200,.1)}break;
   case 'book':o.gone=true;S.books[o.i]=libCode[o.i];SND.pick();msg('Книга: '+(o.i+1)+'-я цифра кода = '+libCode[o.i],4);break;
   case 'fuse':o.gone=true;S.fuses++;SND.pick();msg('Предохранитель '+S.fuses+'/10');break;
-  case 'breaker':if(S.fuses>=10){S.win=true;SND.win()}else{SND.bad();msg('Нужно 10 предохранителей ('+S.fuses+'/10)')}break;
+  case 'breaker':if(S.fuses>=10){S.win=true;netEv({k:'win'});SND.win()}else{SND.bad();msg('Нужно 10 предохранителей ('+S.fuses+'/10)')}break;
   case 'counter':S.shop=true;break}return}
  const d=nearLockedDoor();
  if(d){if(d.code){S.codeInput='';return}
-  if(P.inv.includes('key')){removeItem('key');d.locked=false;SND.lock();msg('Дверь отперта ключом')}else if(P.inv.includes('lockpick')){removeItem('lockpick');d.locked=false;SND.lock();msg('Дверь вскрыта отмычкой')}else{SND.bad();msg('Заперто. Найди ключ в ящиках этой комнаты.')}}
+  if(P.inv.includes('key')){removeItem('key');d.locked=false;netEv({k:'door',n:doors.indexOf(d)});SND.lock();msg('Дверь отперта ключом')}else if(P.inv.includes('lockpick')){removeItem('lockpick');d.locked=false;netEv({k:'door',n:doors.indexOf(d)});SND.lock();msg('Дверь вскрыта отмычкой')}else{SND.bad();msg('Заперто. Найди ключ в ящиках этой комнаты.')}}
 }
 // ---------- ENTITIES ----------
 const rc=r=>({x:(r.x0+r.w/2)*T,y:(r.y0+r.h/2)*T}),dc=d=>({x:d.x*T+16,y:d.y*T+16});
-function startRush(amb){const n=P.room,pts=[rc(rooms[Math.max(0,n-3)])];for(let k=Math.max(1,n-2);k<=Math.min(100,n+2);k++){pts.push(dc(doors[k-1]));pts.push(rc(rooms[k]))}
+function startRush(amb,n0,remote){const n=n0??P.room;if(!remote)netEv({k:'rush',amb,room:n});const pts=[rc(rooms[Math.max(0,n-3)])];for(let k=Math.max(1,n-2);k<=Math.min(100,n+2);k++){pts.push(dc(doors[k-1]));pts.push(rc(rooms[k]))}
  let tot=0;const cum=[0];for(let i=1;i<pts.length;i++){tot+=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);cum.push(tot)}
- S.ents.push({type:amb?'ambush':'rush',pts,cum,tot,s:0,x:pts[0].x,y:pts[0].y,dir:1,state:'wait',t:amb?1.3:3.3,reb:amb?ri(2,4):0,sp:amb?1000:750});
- if(amb)SND.ambWarn();else S.flick=3.3}
+ S.ents.push({type:amb?'ambush':'rush',pts,cum,tot,s:0,x:pts[0].x,y:pts[0].y,dir:1,state:'wait',t:amb?4.6:3.3,t0:amb?4.6:3.3,wt:0,reb:amb?ri(2,4):0,sp:amb?950:750,pause:0});
+ if(amb){S.flick=4.6;msg('Свет мигает зелёным... прячься!',2.5)}else S.flick=3.3}
 function mkFigure(r){let x=r.x0+Math.floor(r.w/2),y=r.y0+Math.floor(r.h/2);for(let k=0;k<200&&!passable(x,y);k++){x=ri(r.x0+1,r.x0+r.w-2);y=ri(r.y0+1,r.y0+r.h-2)}SND.figure();return{x:x*T+16,y:y*T+16,room:r.n,path:[],pt:1,target:null,alert:false,wait:2.5}}
 function randomFloor(r){for(let k=0;k<200;k++){const x=ri(r.x0+1,r.x0+r.w-2),y=ri(r.y0+1,r.y0+r.h-2);if(passable(x,y))return{x:x*T+16,y:y*T+16}}return{x:r.x0*T+64,y:r.y0*T+64}}
 function enterRoom(r){P.room=r.n;P.roomT=0;if(r.n>P.best)P.best=r.n;if(S.eyes&&S.eyes.room!==r.n)S.eyes=null;if(r.t!=='halt')S.halt=null;
@@ -235,7 +239,7 @@ function enterRoom(r){P.room=r.n;P.roomT=0;if(r.n>P.best)P.best=r.n;if(S.eyes&&S
  if(r.t==='library'){S.figure=mkFigure(r);msg('Библиотека. Фигура слепа, но слышит бег. Найди 5 книг с цифрами кода.',6)}
  if(r.t==='electric'){S.figure=mkFigure(r);msg('Дверь 100! Собери 10 предохранителей и включи рубильник!',6)}
  if(r.t==='shop')msg('Магазин Джеффа: подойди к прилавку и нажми E',4);
- if((r.t==='normal'||r.t==='greenhouse')&&!S.ents.length&&!S.seek){const R=Math.random(),n=r.n;
+ if((r.t==='normal'||r.t==='greenhouse')&&!S.ents.length&&!S.seek){const R=NET.coop?mulberry(SEED*31+r.n*7919)():Math.random(),n=r.n;
   if(n>=4&&R<.13)startRush(false);else if(n>=12&&R<.21)startRush(true);else if(n>=7&&!r.dark&&r.t==='normal'&&R<.29)S.eyes={x:(r.x0+r.w/2)*T,y:(r.y0+r.h/2)*T,room:n}}
 }
 // ---------- UPDATE ----------
@@ -244,7 +248,7 @@ function solidPx(px,py){return !passable(Math.floor(px/T),Math.floor(py/T))}
 function hit(x,y){const r=P.crouch?7:10;return solidPx(x-r,y-r)||solidPx(x+r,y-r)||solidPx(x-r,y+r)||solidPx(x+r,y+r)}
 function unstuck(){if(!hit(P.x,P.y))return;for(let rad=2;rad<=96;rad+=2)for(let a=0;a<16;a++){const nx=P.x+Math.cos(a*Math.PI/8)*rad,ny=P.y+Math.sin(a*Math.PI/8)*rad;if(!hit(nx,ny)){P.x=nx;P.y=ny;return}}}
 function move(dx,dy){if(!hit(P.x+dx,P.y))P.x+=dx;if(!hit(P.x,P.y+dy))P.y+=dy}
-function update(dt){audioTick(dt);
+function update(dt){audioTick(dt);netTick(dt);if(S.dead)S.deathT=(S.deathT||0)+dt;if(S.chain){S.chain.t-=dt;if(S.chain.t<=0)S.chain=null}if(P.iv>0)P.iv-=dt;
  S.t+=dt;frames++;if(S.msgT>0)S.msgT-=dt;if(S.shake>0)S.shake-=dt;if(S.sign>0)S.sign-=dt;if(P.hurtT>0)P.hurtT-=dt;
  if(!started||S.dead||S.win)return;
  const room=rooms[P.room];P.roomT+=dt;
@@ -262,6 +266,7 @@ function update(dt){audioTick(dt);
  // doors
  for(const d of [doors[P.room-1],doors[P.room],...rooms[P.room].cds]){if(!d||d.open||d.locked||d.code||d.sealed)continue;if(Math.hypot(d.x*T+16-P.x,d.y*T+16-P.y)<48){d.open=true;SND.door()}}
  for(const o of room.objs){if(o.gone)continue;const d=Math.hypot(o.x*T+16-P.x,o.y*T+16-P.y);
+  if((o.t==='fake'||o.t==='snare'&&!o.used)&&d<60&&held('crucifix')&&!P.hidden){if(o.t==='fake'){o.gone=true;useCrucifix('Дюп',o.x*T+16,o.y*T+16,'разоблачило')}else{o.used=true;useCrucifix('Капкан',o.x*T+16,o.y*T+16,'обезвредило')}continue}
   if(o.t==='fake'&&d<44){o.gone=true;damage(35,'dupe');msg('Это был Дюп! Неправильная дверь.',3);tone(70,.8,'sawtooth',.25,40)}
   if(o.t==='snare'&&!o.used&&d<18&&!P.hidden){o.used=true;P.stun=1.6;SND.snare();damage(12,'snare');msg('Капкан!',2)}
   if(o.t==='fire'&&d<24&&P.fireCd<=0){P.fireCd=.8;damage(18,'fire')}}
@@ -270,37 +275,43 @@ function update(dt){audioTick(dt);
  if(S.flick>0){S.flick-=dt;if(Math.random()<dt*8)SND.flick()}
  // hide
  if(P.hidden){const threat=S.ents.length||S.figure&&S.figure.room===P.room;if(threat)P.hideT=0;else P.hideT+=dt;
-  if(P.hideT>11&&P.hideT-dt<=11){msg('ХАЙД: «ВЫХОДИ!»',3);tone(60,1,'sawtooth',.2)}if(P.hideT>14){P.hidden=null;P.hideT=0;damage(20,'hide');msg('Хайд выгнал тебя!')}}
+  if(P.hideT>11&&P.hideT-dt<=11){msg('ХАЙД: «ВЫХОДИ!»',3);tone(60,1,'sawtooth',.2)}if(P.hideT>14&&held('crucifix')){P.hideT=0;useCrucifix('Хайд',P.x,P.y,'прогнало')}if(P.hideT>14){P.hidden=null;P.hideT=0;damage(20,'hide');msg('Хайд выгнал тебя!')}}
  // rush / ambush
- for(const e of S.ents){if(e.state==='wait'){e.t-=dt;if(e.t<=0){e.state='go';e.type==='rush'?SND.rush():SND.ambush()}continue}
+ for(const e of S.ents){if(e.state==='wait'){e.t-=dt;e.wt-=dt;if(e.wt<=0){e.wt=e.type==='ambush'?.55:.8;const k=1-e.t/e.t0;if(!play(e.type==='ambush'?'ambush':'rush_rumble',.05+k*.45,e.type==='ambush'?.6+k*.3:.7))SY.ambWarn()}if(e.t<=0){e.state='go';e.type==='rush'?SND.rush():SND.ambush()}continue}
+  if(e.pause>0){e.pause-=dt;if(e.pause<=0){e.dir=-e.lastDir;SND.ambush();S.flick=.6}continue}
   e.s+=e.dir*e.sp*dt;const sc=Math.max(0,Math.min(e.tot,e.s));let i=1;while(i<e.cum.length-1&&e.cum[i]<sc)i++;const a=e.pts[i-1],b=e.pts[i],f=(sc-e.cum[i-1])/Math.max(1,e.cum[i]-e.cum[i-1]);e.x=a.x+(b.x-a.x)*f;e.y=a.y+(b.y-a.y)*f;
-  if(!P.hidden&&dist(e,P)<170&&held('crucifix')){e.dead=true;useCrucifix(NAMES[e.type]);continue}
+  if(!P.hidden&&dist(e,P)<170&&held('crucifix')){e.dead=true;useCrucifix(NAMES[e.type],e.x,e.y);continue}
   if(!P.hidden&&dist(e,P)<80)die(e.type);
-  if(e.dir>0&&e.s>=e.tot){if(e.reb>0){e.dir=-1;e.reb--;SND.ambush()}else e.dead=true}else if(e.dir<0&&e.s<=0){e.dir=1;SND.ambush()}}
+  if(e.dir>0&&e.s>=e.tot){if(e.reb>0){e.lastDir=1;e.dir=0;e.reb--;e.pause=rnd(2.6,4);if(!play('ambush',.12,.6))SY.ambWarn()}else e.dead=true}else if(e.dir<0&&e.s<=0){e.lastDir=-1;e.dir=0;e.pause=rnd(2.6,4);play('ambush',.12,.6)}}
  S.ents=S.ents.filter(e=>!e.dead);
  // screech
  if(room.dark&&!S.screech&&!P.hidden&&P.roomT>3&&Math.random()<dt*.05){S.screech={ang:rnd(0,Math.PI*2),t:2.2};SND.psst()}
- if(S.screech){const s=S.screech;s.t-=dt;if(!room.dark||P.hidden)S.screech=null;else if(held('crucifix')){useCrucifix('Скрич');S.screech=null}
+ if(S.screech){const s=S.screech;s.t-=dt;if(!room.dark||P.hidden)S.screech=null;else if(held('crucifix')){useCrucifix('Скрич',P.x+Math.cos(s.ang)*70,P.y+Math.sin(s.ang)*70);S.screech=null}
   else if(angDiff(P.face,s.ang)<.6){S.screech=null;tone(1800,.2,'square',.08,600);msg('Скрич испугался и убежал',2)}else if(s.t<=0){S.screech=null;damage(30,'screech');SND.bite();msg('Скрич укусил!',2)}}
  // eyes
- if(S.eyes&&S.eyes.room===P.room&&!P.hidden){const a=Math.atan2(S.eyes.y-P.y,S.eyes.x-P.x);if(angDiff(a,P.face)<.85){P.hp-=10*dt;if(P.hp<=0)die('eyes');if(Math.random()<dt*3)SND.hurt();P.hurtT=.1}}
+ if(S.eyes&&S.eyes.room===P.room&&!P.hidden&&held('crucifix')){useCrucifix('Глаза',S.eyes.x,S.eyes.y);S.eyes=null}
+ if(S.eyes&&S.eyes.room===P.room&&!P.hidden){const a=Math.atan2(S.eyes.y-P.y,S.eyes.x-P.x);const lk=angDiff(a,P.face)<.85;S.eyes.look=lk?(S.eyes.look||0)+dt:0;if(lk&&S.eyes.look>.35&&P.iv<=0){P.hp-=10*dt;if(P.hp<=0)die('eyes');if(Math.random()<dt*3)SND.hurt();P.hurtT=.1}}
  // halt
  if(S.halt&&room.t==='halt'){const h=S.halt,mn=(room.x0+1)*T+16,mxx=(room.x0+room.w-2)*T+16,cl=v=>Math.max(mn,Math.min(mxx,v));
   const place=side=>{h.side=side;h.x=side<0?Math.max(mn-40,P.x-260):Math.min(mxx,Math.max(P.x+260,Math.min(mxx,P.x+120)))};
   if(h.phase==='idle'){if(P.x>mn+6*T){h.phase='warn';h.t=1.3;h.side=1;h.x=cl(Math.max((room.x0+room.w/2)*T,P.x+300));SND.halt();msg('Впереди Халт! Отходи от него.',2.5)}}
   else if(h.phase==='warn'){h.t-=dt;if(h.t<=0){h.phase='chase';h.t=(h.x>P.x)?rnd(2,3):rnd(5,7)}}
+  else if(h.phase==='chase'&&held('crucifix')&&Math.abs(h.x-P.x)<160){useCrucifix('Халт',h.x,P.y);h.phase='banished'}
   else if(h.phase==='chase'){h.x=cl(h.x+Math.sign(P.x-h.x)*70*dt);h.t-=dt;if(h.cd>0)h.cd-=dt;
    if(Math.abs(h.x-P.x)<26&&h.cd<=0){damage(20,'halt');h.cd=1.5;place(h.side)}
    if(h.t<=0){h.phase='flip';h.t=1;S.sign=2;SND.halt()}}
   else if(h.phase==='flip'){h.t-=dt;if(h.t<=0){place(h.x>P.x?-1:1);h.phase='warn';h.t=.9}}}
  // seek
  if(S.seek){const k=S.seek;S.trailT-=dt;if(S.trailT<=0){S.trail.push({x:P.x,y:P.y});S.trailT=.05}
-  if(k.wait>0)k.wait-=dt;else{let mv=190*dt;while(mv>0&&S.trail.length){const t=S.trail[0],d=dist(k,t);if(d<=mv){k.x=t.x;k.y=t.y;mv-=d;S.trail.shift()}else{k.x+=(t.x-k.x)/d*mv;k.y+=(t.y-k.y)/d*mv;mv=0}}}
-  if(dist(k,P)<24)die('seek')}
+  if(held('crucifix')&&dist(k,P)<170&&k.wait<=0){k.wait=4.5;useCrucifix('Сек',k.x,k.y,'остановило')}
+  if(k.wait>0)k.wait-=dt;else{let mv=(dist(k,P)>420?250:190)*dt;while(mv>0&&S.trail.length){const t=S.trail[0],d=dist(k,t);if(d<=mv){k.x=t.x;k.y=t.y;mv-=d;S.trail.shift()}else{k.x+=(t.x-k.x)/d*mv;k.y+=(t.y-k.y)/d*mv;mv=0}}}
+  if(dist(k,P)<24&&k.wait<=0)die('seek')}
  // figure
- const f=S.figure;if(f&&f.room===P.room&&P.hidden&&!S.hb){f.hbCd=(f.hbCd||0)-dt;if(f.hbCd<=0&&dist(f,{x:P.hidden.x*T+16,y:P.hidden.y*T+16})<110){S.hb={k:0,need:ri(3,5),t:1.5,side:pick(['L','R'])};SND.heart()}}
+ const f=S.figure;if(f&&f.room===P.room&&held('crucifix')&&!(f.stun>0)&&dist(f,P)<140){f.stun=10;f.alert=false;f.target=null;f.path=[];S.hb=null;useCrucifix('Фигура',f.x,f.y,'сковало')}
+ if(f&&f.stun>0)f.stun-=dt;
+ if(f&&f.room===P.room&&P.hidden&&!S.hb&&!(f.stun>0)){f.hbCd=(f.hbCd||0)-dt;if(f.hbCd<=0&&dist(f,{x:P.hidden.x*T+16,y:P.hidden.y*T+16})<110){S.hb={k:0,need:ri(3,5),t:1.5,side:pick(['L','R'])};SND.heart()}}
  if(S.hb){S.hb.t-=dt;if(!P.hidden)S.hb=null;else if(S.hb.t<=0){S.hb=null;die('figure')}}
- if(f&&f.room===P.room&&!S.hb){const fr=rooms[f.room];if(f.wait>0)f.wait-=dt;else{
+ if(f&&f.room===P.room&&!S.hb&&!(f.stun>0)){const fr=rooms[f.room];if(f.wait>0)f.wait-=dt;else{
   if(!P.hidden&&P.noise>0&&dist(P,f)<P.noise){if(!f.alert)SND.figure();f.target={x:P.x,y:P.y};f.alert=true;f.pt=Math.min(f.pt,.1)}
   f.pt-=dt;if(f.pt<=0){f.pt=.45;if(!f.target||dist(f,f.target)<20){f.target=randomFloor(fr);f.alert=false}
    f.path=bfs(fr,Math.floor(f.x/T),Math.floor(f.y/T),Math.floor(f.target.x/T),Math.floor(f.target.y/T))||[];if(!f.path.length&&dist(f,f.target)>=20)f.target=null}
@@ -387,11 +398,12 @@ function render(){
   if(r.t==='library'){X.fillStyle='#d9b86a';X.font='bold 14px Arial';X.textAlign='center';X.fillText('БИБЛИОТЕКА',(r.x0+r.w/2)*T,(r.y0+1)*T+20)}}
  // player
  for(const d of S.drops)if(Math.abs(d.room-P.room)<=2){X.fillStyle='rgba(0,0,0,.35)';X.beginPath();X.ellipse(d.x,d.y+8,10,3,0,0,7);X.fill();drawIcon(X,d.it,d.x,d.y,22)}
- if(!P.hidden){X.save();X.translate(P.x,P.y);if(P.crouch){X.fillStyle='rgba(0,0,0,.4)';X.beginPath();X.arc(0,0,13,0,7);X.fill();X.scale(.72,.72)}X.rotate(P.face);X.fillStyle=P.hurtT>0?'#f66':'#e8c8a0';X.beginPath();X.arc(0,0,10,0,7);X.fill();X.fillStyle='#345';X.beginPath();X.arc(-2,0,8,Math.PI/2,Math.PI*1.5);X.fill();X.fillStyle='#111';X.fillRect(5,-5,3,3);X.fillRect(5,2,3,3);
+ drawOthers();if(S.chain){const c=S.chain,a=Math.min(1,c.t);X.save();X.globalAlpha=a;X.strokeStyle='#cfc8a0';X.lineWidth=3;for(let i=0;i<3;i++){X.beginPath();X.ellipse(c.x,c.y,28+i*6,10+i*3,S.t*3+i*1.2,0,7);X.stroke()}X.fillStyle='#fff8d0';X.globalAlpha=a*.35;X.beginPath();X.arc(c.x,c.y,40,0,7);X.fill();X.restore()}
+ if(!P.hidden){if(P.iv>0&&Math.floor(S.t*10)%2)X.globalAlpha=.4;X.save();X.translate(P.x,P.y);if(P.crouch){X.fillStyle='rgba(0,0,0,.4)';X.beginPath();X.arc(0,0,13,0,7);X.fill();X.scale(.72,.72)}X.rotate(P.face);X.fillStyle=P.hurtT>0?'#f66':'#e8c8a0';X.beginPath();X.arc(0,0,10,0,7);X.fill();X.fillStyle='#345';X.beginPath();X.arc(-2,0,8,Math.PI/2,Math.PI*1.5);X.fill();X.fillStyle='#111';X.fillRect(5,-5,3,3);X.fillRect(5,2,3,3);
   if(P.inv[P.sel]){X.save();X.translate(13,6);X.rotate(Math.PI/2);drawIcon(X,P.inv[P.sel],0,0,16);X.restore()}else if(P.light){X.fillStyle='#888';X.fillRect(8,4,8,4)}X.restore();if(P.crouch){X.fillStyle='#9cf';X.font='10px Arial';X.textAlign='center';X.fillText('присед',P.x,P.y-16)}}
  // entities under lighting
  const f=S.figure;if(f&&Math.abs(f.room-P.room)<=1){ED.figure(f.x,f.y,t,f.alert,f.face!=null?f.face:Math.atan2(P.y-f.y,P.x-f.x))}
- if(S.halt&&S.halt.phase!=='idle'){const h=S.halt;ED.halt(h.x,P.y,t,h.phase==='chase'?.75+.2*Math.sin(t*6):.3+.15*Math.sin(t*20))}
+ if(S.halt&&S.halt.phase!=='idle'&&S.halt.phase!=='banished'){const h=S.halt;ED.halt(h.x,P.y,t,h.phase==='chase'?.75+.2*Math.sin(t*6):.3+.15*Math.sin(t*20))}
  if(S.seek){const k=S.seek;ED.seek(k.x,k.y,t,S.trail)}
  X.restore();
  // lighting
@@ -449,14 +461,93 @@ function drawHUD(){const room=rooms[P.room];X.textAlign='left';btns=[];
   else{X.fillStyle='rgba(255,255,255,.4)';X.font='13px Arial';X.fillText('Касание слева — джойстик',140,H-20)}}
  if(!started){X.fillStyle='rgba(0,0,0,.82)';X.fillRect(0,0,W,H);X.fillStyle='#d9b86a';X.font='bold 56px Georgia';X.fillText('DOORS 2D',W/2,150);X.font='18px Arial';X.fillStyle='#ccc';X.fillText('Фан-ремейк: Отель, двери 0–100',W/2,185);
   ['WASD/стрелки — движение, Shift — бег вкл/выкл (шумно!)','E — взаимодействие / спрятаться, F — фонарик','1–0 / колесо — 10 слотов, G — бросить, E — подобрать, C — присесть/встать','Мышь — направление взгляда. На телефоне: джойстик слева, кнопки справа','M — звук вкл/выкл, −/+ — громкость, K — авторы звуков и музыки','Нажми любую клавишу, чтобы начать'].forEach((s,i)=>X.fillText(s,W/2,250+i*30))}
- if(S.dead){X.fillStyle='rgba(0,0,20,.85)';X.fillRect(0,0,W,H);X.fillStyle='#c22';X.font='bold 48px Georgia';X.fillText('ТЫ ПОГИБ',W/2,170);X.fillStyle='#ddd';X.font='20px Arial';X.fillText('Дошёл до двери '+pad(P.best),W/2,215);
-  X.fillStyle='#7cf';X.font='italic 18px Georgia';X.fillText('Лунный свет шепчет:',W/2,290);wrap(HINTS[S.dead]||'Будь осторожнее...',W/2,325,700,26);X.fillStyle='#fff';X.font='18px Arial';X.fillText('R / Enter / клик — заново',W/2,460)}
+ if(S.dead)drawDeath();
  if(S.win){X.fillStyle='rgba(20,20,0,.85)';X.fillRect(0,0,W,H);X.fillStyle='#fd4';X.font='bold 48px Georgia';X.fillText('ПОБЕДА!',W/2,200);X.fillStyle='#fff';X.font='20px Arial';X.fillText('Свет включён, Фигура повержена — ты сбежал из отеля!',W/2,260);X.fillText('Золото: '+P.gold,W/2,300);X.fillText('R / Enter — сыграть снова',W/2,380)}}
 function wrap(s,x,y,mw,lh){const w=s.split(' ');let l='';for(const p of w){if(X.measureText(l+p).width>mw){X.fillText(l,x,y);y+=lh;l=''}l+=p+' '}X.fillText(l,x,y)}
+// ===== DEATH / REVIVE =====
+const DNAME={rush:'Раш',ambush:'Эмбуш',screech:'Скрич',eyes:'Глаза',halt:'Халт',seek:'Сек',figure:'Фигура',dupe:'Дюп',snare:'Капкан',hide:'Хайд',fire:'Огонь'};
+let DBTN=[];
+function revive(){if(P.revived||!S.dead)return;P.revived=true;S.dead=null;S.deathT=0;P.hp=50;P.iv=3;P.hidden=null;P.stun=0;
+ const d=doors[P.room-1];if(d){const r=rooms[P.room],[ix,iy]=innerOf(d,r);P.x=ix*T+16;P.y=iy*T+16}else{const r=rooms[0];P.x=(r.x0+3)*T+16;P.y=(r.y0+Math.floor(r.h/2))*T+16}unstuck();
+ S.ents=[];S.screech=null;S.hb=null;if(S.eyes)S.eyes=null;if(S.halt)S.halt.phase='idle';if(S.seek){S.seek.wait=3;S.trail=[];S.seek.x=P.x-260;S.seek.y=P.y}
+ const f=S.figure;if(f){f.alert=false;f.target=null;f.wait=3;f.stun=3}SND.holy();msg('Ты возродился! 50 HP, 3 сек. неуязвимости. Второй смерти не простят.',4);netEv({k:'revive'})}
+function drawJump(c,k){X.save();X.translate(W/2+ri(-6,6)*(1-Math.min(1,k)),H/2+ri(-6,6)*(1-Math.min(1,k)));const s=1.2+Math.pow(Math.min(1,k/1.3),2)*6;X.scale(s,s);const t=S.t;
+ switch(c){case'rush':ED.rush(0,0,t,false,1);break;case'ambush':ED.rush(0,0,t,true,1);break;case'screech':ED.screech(0,0,t,true);break;case'eyes':ED.eyes(0,0,t);break;case'halt':ED.halt(0,0,t,1);break;case'seek':ED.seek(0,0,t,null);break;
+  case'figure':ED.figure(0,0,t,true,Math.PI/2);break;case'dupe':drawDoor(-16,-16,P.room+1,'closed');ED.dupeMouth(-16,-16,t,1);break;case'snare':ED.snare(-16,-16,true,t);break;case'hide':X.fillStyle='#3d2614';X.fillRect(-15,-15,30,30);ED.hideEyes(-16,-16,t,2);break;
+  default:X.fillStyle='#f62';for(let i=0;i<8;i++){X.globalAlpha=.6;X.beginPath();X.arc(Math.sin(t*9+i)*8,-i*3,10-i,0,7);X.fill()}X.globalAlpha=1}X.restore()}
+function drawDeath(){const k=S.deathT||0;DBTN=[];
+ if(k<1.4){drawJump(S.dead,k);vignette(.35+k*.4,'150,0,0');return}
+ if(k<2.2){drawJump(S.dead,1.4);X.fillStyle='rgba(0,0,0,'+Math.min(1,(k-1.4)/.8)+')';X.fillRect(0,0,W,H);return}
+ const a=Math.min(1,(k-2.2)/.6);X.globalAlpha=a;X.fillStyle='#050208';X.fillRect(0,0,W,H);vignette(.6,'90,0,0');X.textAlign='center';
+ X.fillStyle='#c22';X.font='bold 52px Georgia';X.shadowColor='#f00';X.shadowBlur=18;X.fillText('ТЫ ПОГИБ',W/2,110);X.shadowBlur=0;
+ X.font='20px Arial';X.fillStyle='#ddd';X.fillText('Причина: '+(DNAME[S.dead]||'неизвестно')+'   •   Дверь '+pad(P.best)+'   •   Золото: '+P.gold,W/2,150);
+ const bx=W/2-360,by=180;const g=X.createLinearGradient(0,by,0,by+170);g.addColorStop(0,'rgba(40,80,160,.35)');g.addColorStop(1,'rgba(10,20,60,.55)');X.fillStyle=g;X.fillRect(bx,by,720,170);X.strokeStyle='rgba(140,200,255,.6)';X.lineWidth=2;X.strokeRect(bx,by,720,170);
+ X.fillStyle='#bfe3ff';X.shadowColor='#6af';X.shadowBlur=14;X.font='italic 22px Georgia';X.fillText('✦ Лунный свет шепчет ✦',W/2,by+34);X.shadowBlur=0;X.fillStyle='#e6f2ff';X.font='italic 18px Georgia';wrap(HINTS[S.dead]||'Будь осторожнее...',W/2,by+72,660,26);
+ const btn=(x,y,w,h,label,act,col)=>{X.fillStyle=col;X.fillRect(x,y,w,h);X.strokeStyle='#fff';X.strokeRect(x,y,w,h);X.fillStyle='#fff';X.font='bold 20px Arial';X.fillText(label,x+w/2,y+h/2+7);DBTN.push({x,y,w,h,act})};
+ if(!P.revived)btn(W/2-250,400,240,56,'Возродиться (V)','revive','#2a6a3a');else{X.fillStyle='#a88';X.font='16px Arial';X.fillText('Возрождение уже использовано',W/2-130,432)}
+ btn(W/2+10,400,240,56,NET.coop?'В лобби (R)':'Заново (R)','again','#6a2a2a');X.globalAlpha=1}
+function deathAct(a){if(!S.dead||(S.deathT||0)<2.2)return;if(a==='revive')revive();else if(a==='again'){if(NET.coop)toLobby();else reset({start:START})}}
+// ===== NET / LOBBY =====
+const NET={ws:null,id:null,ok:false,coop:false,party:null,lobby:{players:[],parties:[]},others:new Map(),sendT:0,members:[]};
+function netSend(o){if(NET.ws&&NET.ws.readyState===1)NET.ws.send(JSON.stringify(o))}
+function netEv(o){if(NET.coop){o.t='ev';netSend(o)}}
+function wsUrl(){if(location.protocol==='file:')return null;const h=location.hostname==='doors2d-remade.onrender.com'?'doors2d-remade-online.onrender.com':location.host;return(location.protocol==='https:'?'wss://':'ws://')+h+'/ws'}
+function netConnect(){const u=wsUrl();if(!u){lobStatus('Офлайн: доступна одиночная игра');return}let ws;try{ws=new WebSocket(u)}catch(e){lobStatus('Сервер недоступен — одиночная игра');return}NET.ws=ws;lobStatus('Подключение к серверу...');
+ ws.onopen=()=>{NET.ok=true;lobStatus('Онлайн');if(NAME)netSend({t:'hello',name:NAME})};
+ ws.onclose=()=>{NET.ok=false;NET.ws=null;lobStatus('Сервер недоступен — одиночная игра (переподключение...)');renderLobby();setTimeout(netConnect,5000)};ws.onerror=()=>{};
+ ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(_){return}
+  if(m.t==='welcome')NET.id=m.id;
+  else if(m.t==='lobby'){NET.lobby=m;const me=m.players.find(p=>p.id===NET.id);NET.party=me?me.party:null;renderLobby()}
+  else if(m.t==='err')lobStatus(m.msg);
+  else if(m.t==='go'){NET.coop=true;NET.members=m.members;NET.others=new Map();for(const p of m.members)if(p.id!==NET.id)NET.others.set(p.id,{name:p.name,x:0,y:0,tx:0,ty:0,room:0,dead:false,seen:false});reset({seed:m.seed,start:m.start});started=true;showLobby(false)}
+  else if(m.t==='st'&&NET.coop){const o=NET.others.get(m.id);if(o){if(!o.seen){o.x=m.x;o.y=m.y;o.seen=true}o.tx=m.x;o.ty=m.y;o.room=m.room;o.face=m.f;o.dead=m.d;o.hid=m.h;o.hp=m.hp}}
+  else if(m.t==='left'){const o=NET.others.get(m.id);if(o){o.gone=true;if(started)msg(o.name+' покинул игру',3)}}
+  else if(m.t==='ev'&&NET.coop&&started)onNetEv(m)}}
+function onNetEv(m){const o=NET.others.get(m.id),nm=o?o.name:'?';
+ if(m.k==='rush'){if(!S.ents.length&&!S.dead&&Math.abs(P.room-m.room)<=2&&!S.seek)startRush(m.amb,m.room,true)}
+ else if(m.k==='door'){const d=doors[m.n];if(d){d.locked=false;d.code=false;d.open=true}}
+ else if(m.k==='dead')msg(nm+' погиб ('+(DNAME[m.c]||'?')+')',4);else if(m.k==='revive')msg(nm+' возродился',3);else if(m.k==='win')msg(nm+' включил свет!',4)}
+function netTick(dt){if(!NET.coop||!started)return;NET.sendT-=dt;if(NET.sendT<=0){NET.sendT=.1;netSend({t:'st',x:Math.round(P.x),y:Math.round(P.y),room:P.room,f:+P.face.toFixed(2),d:!!S.dead,h:!!P.hidden,hp:Math.ceil(P.hp)})}
+ for(const o of NET.others.values()){const k=Math.min(1,dt*10);o.x+=(o.tx-o.x)*k;o.y+=(o.ty-o.y)*k}}
+const PCOL=['#7cf','#fc7','#c7f','#7f9'];
+function drawOthers(){if(!NET.coop)return;let i=0;for(const[id,o]of NET.others){i++;if(o.gone||!o.seen||o.hid)continue;X.save();X.translate(o.x,o.y);X.globalAlpha=o.dead?.45:1;X.fillStyle=o.dead?'#666':PCOL[i%4];X.beginPath();X.arc(0,0,11,0,7);X.fill();X.strokeStyle='#000';X.lineWidth=2;X.beginPath();X.moveTo(0,0);X.lineTo(Math.cos(o.face||0)*12,Math.sin(o.face||0)*12);X.stroke();
+ X.fillStyle='#fff';X.font='bold 12px Arial';X.textAlign='center';X.fillText((o.dead?'☠ ':'')+o.name,0,-17);X.restore()}X.globalAlpha=1}
+function drawPartyHud(){if(!NET.coop||!started||S.dead)return;let y=112;X.textAlign='left';X.font='12px Arial';let i=0;for(const o of NET.others.values()){i++;X.fillStyle='rgba(0,0,0,.55)';X.fillRect(10,y,240,20);X.fillStyle=o.gone?'#777':o.dead?'#c55':PCOL[i%4];X.fillText((o.gone?'(вышел) ':o.dead?'☠ ':'')+o.name+'  — дверь '+pad(o.room||0)+(o.dead?'':'  HP '+(o.hp??100)),16,y+14);y+=22}}
+function toLobby(){netSend({t:'leave'});NET.coop=false;NET.others=new Map();started=false;reset();showLobby(true)}
+let NAME=localStorage.getItem('d2name')||'',LOBSTART=0;
+function lobStatus(s){const e=document.getElementById('lst');if(e)e.textContent=s}
+function showLobby(v){document.getElementById('lob').style.display=v?'flex':'none'}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function renderLobby(){const L=NET.lobby,pl=document.getElementById('lpl'),pa=document.getElementById('lpa'),me=document.getElementById('lme');if(!pl)return;
+ pl.innerHTML=NET.ok?L.players.filter(p=>p.name).map(p=>'<li>'+esc(p.name)+(p.id===NET.id?' (ты)':'')+(p.party?' <i>в лифте #'+p.party+'</i>':'')+'</li>').join('')||'<li>никого</li>':'<li>нет связи с сервером</li>';
+ const my=L.parties.find(q=>q.id===NET.party);const nm=id=>{const p=L.players.find(p=>p.id===id);return p?esc(p.name):'?'};
+ pa.innerHTML=L.parties.filter(q=>q.id!==NET.party).map(q=>'<li>Лифт #'+q.id+' • '+q.members.map(nm).join(', ')+' • '+q.members.length+'/4 • старт '+q.start+(q.state==='wait'&&q.members.length<4?' <button data-j="'+q.id+'">Войти</button>':' <i>'+(q.state==='wait'?'полон':'в игре')+'</i>')+'</li>').join('')||'<li>пока нет лифтов</li>';
+ if(my){const host=my.host===NET.id;me.innerHTML='<b>Твой лифт #'+my.id+'</b> ('+my.members.length+'/4): '+my.members.map(id=>nm(id)+(id===my.host?' ★':'')).join(', ')+'<br>Этаж: Отель • старт с двери '+my.start+'<br>'+(host?'<button id="lgo" class="big">Поехали!</button> ':'<i>Ждём, пока хост нажмёт «Поехали»...</i> ')+'<button id="llv">Выйти из лифта</button>'}else me.innerHTML='';
+ pa.querySelectorAll('button[data-j]').forEach(b=>b.onclick=()=>{saveName();netSend({t:'join',party:+b.dataset.j})});
+ const g=document.getElementById('lgo');if(g)g.onclick=()=>netSend({t:'start'});const lv=document.getElementById('llv');if(lv)lv.onclick=()=>netSend({t:'leave'});
+ document.getElementById('lcr').disabled=!NET.ok;document.querySelectorAll('[data-s]').forEach(b=>b.classList.toggle('on',+b.dataset.s===LOBSTART))}
+function saveName(){const v=document.getElementById('lnm').value.trim().slice(0,16)||'Игрок';NAME=v;localStorage.setItem('d2name',v);netSend({t:'hello',name:v})}
+function initLobby(){const d=document.createElement('div');d.id='lob';d.innerHTML=`<div class="lb"><h1>DOORS 2D</h1><div class="sub">Фан-ремейк • Лобби</div>
+<div class="row"><label>Ник: <input id="lnm" maxlength="16" placeholder="Твой ник"></label> <span id="lst"></span></div>
+<div class="row"><b>Этаж:</b> <button class="on">Отель (1–100)</button> <button disabled>Backdoor — Скоро</button> <button disabled>Шахты — Скоро</button></div>
+<div class="row"><b>Старт с двери:</b> <button data-s="0">0</button> <button data-s="50">50</button> <button data-s="90">90</button></div>
+<div class="row"><button id="lso" class="big">Одиночная игра</button> <button id="lcr" class="big">Создать лифт (до 4)</button> <button id="lcd">Авторы звуков</button></div>
+<div id="lme" class="row"></div><div class="cols"><div><b>Игроки онлайн</b><ul id="lpl"></ul></div><div><b>Лифты</b><ul id="lpa"></ul></div></div>
+<div class="help">WASD — ходьба • Shift — бег вкл/выкл • C — присесть/встать • E — действие/спрятаться • F — фонарик • 1–0 — слоты • G — бросить • M — звук • −/+ — громкость</div></div>`;document.body.appendChild(d);
+ const st=document.createElement('style');st.textContent=`#lob{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(#1a0f08,#000);z-index:10;color:#ddd;font:15px Arial;overflow:auto}
+#lob .lb{width:min(860px,96vw);padding:18px}#lob h1{font:bold 54px Georgia;color:#d9b86a;margin:0;text-align:center}#lob .sub{text-align:center;color:#aaa;margin-bottom:12px}#lob .row{margin:10px 0}
+#lob button{background:#3a2616;color:#eee;border:1px solid #8a6a3a;padding:6px 12px;cursor:pointer;font:15px Arial}#lob button.on{background:#8a6a3a;color:#000}#lob button:disabled{opacity:.45;cursor:default}#lob button.big{font:bold 17px Arial;padding:10px 18px}
+#lob input{background:#111;color:#fff;border:1px solid #8a6a3a;padding:6px;font:15px Arial}#lob .cols{display:flex;gap:16px}#lob .cols>div{flex:1;background:rgba(0,0,0,.4);border:1px solid #4a3a2a;padding:8px;min-height:90px}#lob ul{margin:6px 0;padding-left:18px}#lob .help{color:#888;font-size:12px;margin-top:10px}#lst{color:#8c8;margin-left:10px}#lme{background:rgba(60,40,10,.4);padding:6px}`;document.head.appendChild(st);
+ const n=document.getElementById('lnm');n.value=NAME;n.onchange=saveName;n.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')saveName()});
+ document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{LOBSTART=+b.dataset.s;netSend({t:'cfg',start:LOBSTART});renderLobby()});
+ document.getElementById('lso').onclick=()=>{au();saveName();soloStart()};document.getElementById('lcr').onclick=()=>{au();saveName();netSend({t:'create',floor:'hotel',start:LOBSTART})};
+ document.getElementById('lcd').onclick=()=>{au();showLobby(false);showCredits=true};d.addEventListener('pointerdown',()=>au());renderLobby();netConnect()}
+function soloStart(){if(NET.party)netSend({t:'leave'});NET.coop=false;reset({start:LOBSTART});started=true;showLobby(false)}
+
 // ---------- LOOP ----------
-reset();let last=performance.now();
+reset();initLobby();let last=performance.now();
 function drawCredits(){if(!showCredits)return;X.fillStyle='#000';X.fillRect(0,0,W,H);X.textAlign='center';X.fillStyle='#d9b86a';X.font='bold 26px Georgia';X.fillText('Звуки и музыка (свободные лицензии)',W/2,40);X.font='12px Arial';CREDITS.forEach((c,i)=>{X.fillStyle='#ddd';X.fillText(c[0]+'  ['+c[2]+']',W/2,72+i*27);X.fillStyle='#8ab';X.fillText(c[1],W/2,85+i*27)});X.fillStyle='#aaa';X.fillText('Оригинальные звуки DOORS/Roblox не используются. Подробности: CREDITS.txt. Загружено файлов: '+audioLoaded+'/'+AUDIO_FILES.length+'. K — закрыть',W/2,H-12)}
-function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);render();drawCredits();requestAnimationFrame(loop)}
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);render();X.globalAlpha=1;drawPartyHud();drawCredits();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
-window.__pass=passable;window.__doors={get P(){return P},get S(){return S},get rooms(){return rooms},get doors(){return doors},get frames(){return frames},enterRoom,update,render,innerOf,bfs,handleKey,get allDoors(){return allDoors},get TM(){return TM},startRush,reset,get libCode(){return libCode},setStarted(){started=true}};
+window.__pass=passable;window.__doors={get P(){return P},get S(){return S},get rooms(){return rooms},get doors(){return doors},get frames(){return frames},enterRoom,update,render,innerOf,bfs,handleKey,get allDoors(){return allDoors},get TM(){return TM},startRush,reset,revive,NET,get SEED(){return SEED},get START(){return START},mkFigure,useCrucifix,get DBTN(){return DBTN},soloStart,get libCode(){return libCode},setStarted(){showLobby(false);started=true}};
 </script></body></html>

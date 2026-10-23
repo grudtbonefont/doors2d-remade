@@ -37,4 +37,6 @@ audio/music_door100.ogg  killerfishred "Menace Synth Track"  https://opengameart
 audio/seek_chase.ogg     wolfgang "Chase!"                   https://opengameart.org/content/chase CC0
 audio/death.ogg          robin-lamb "Game Over Dark Short Music Clips" gameoverdark https://opengameart.org/content/game-over-dark-short-music-clips CC0
 audio/win.ogg            umplix "Level Complete!" level_finished_1 (first 7 s) https://opengameart.org/content/level-complete CC0
+audio/elevator.ogg       Pro Sensory (Alex McCulloch) "Elevator Music" (first 90 s)   https://opengameart.org/content/elevator-music CC0
+audio/lobby.ogg          Pro Sensory (Alex McCulloch) "Elevator Music 2" (first 90 s) https://opengameart.org/content/elevator-music-2 CC0
 Each sound is shipped as both .ogg and .mp3 (same content).
