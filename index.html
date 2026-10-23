@@ -40,7 +40,7 @@ const SND={...SY,door:()=>{if(play('door_open',.8,rnd(.9,1.1))){if(Math.random()
  hideIn:P_('wardrobe_in',.8,SY.door),hideOut:P_('wardrobe_out',.8,SY.door),halt:()=>{if(!play('halt_static',.5))SY.halt()},holy:SY.holy};
 let thunderT=20;
 function audioTick(dt){if(!AC)return;const room=rooms[P.room]||{};let m=null;
- if(!started){m=NET.party?'elevator':showCredits?null:'lobby'}else if(!S.dead&&!S.win){m=S.seek?'seek_chase':room.t==='library'?'music_library':room.t==='electric'?'music_door100':room.t==='shop'?'music_shop':'music_hotel'}
+ if(ELEV){m='elevator'}else if(!started){m=NET.party?'elevator':showCredits?null:'lobby'}else if(!S.dead&&!S.win){m=S.seek?'seek_chase':room.t==='library'?'music_library':room.t==='electric'?'music_door100':room.t==='shop'?'music_shop':'music_hotel'}
  setLoop('music',m,m==='elevator'||m==='lobby'?.45:m==='seek_chase'?.6:m==='music_shop'?.35:.3,2);
  setLoop('amb',started&&!S.dead?'rain':null,room.dark?.1:.2,2);
  setLoop('ent',S.halt&&room.t==='halt'&&S.halt.phase!=='idle'&&S.halt.phase!=='banished'?'halt_static':S.eyes&&S.eyes.room===P.room?'eyes_hum':null,S.halt&&room.t==='halt'?(S.halt.phase==='chase'?.35:.15):.4,.6);
@@ -499,7 +499,7 @@ function netConnect(){const u=wsUrl();if(!u){lobStatus('Офлайн: досту
   if(m.t==='welcome')NET.id=m.id;
   else if(m.t==='lobby'){NET.lobby=m;const me=m.players.find(p=>p.id===NET.id);NET.party=me?me.party:null;renderLobby()}
   else if(m.t==='err')lobStatus(m.msg);
-  else if(m.t==='go'){NET.coop=true;NET.members=m.members;NET.others=new Map();for(const p of m.members)if(p.id!==NET.id)NET.others.set(p.id,{name:p.name,x:0,y:0,tx:0,ty:0,room:0,dead:false,seen:false});reset({seed:m.seed,start:m.start});started=true;showLobby(false)}
+  else if(m.t==='go'){NET.coop=true;startElev(m.members.map(p=>p.name),m.start,6);NET.members=m.members;NET.others=new Map();for(const p of m.members)if(p.id!==NET.id)NET.others.set(p.id,{name:p.name,x:0,y:0,tx:0,ty:0,room:0,dead:false,seen:false});reset({seed:m.seed,start:m.start});started=true;showLobby(false)}
   else if(m.t==='st'&&NET.coop){const o=NET.others.get(m.id);if(o){if(!o.seen){o.x=m.x;o.y=m.y;o.seen=true}o.tx=m.x;o.ty=m.y;o.room=m.room;o.face=m.f;o.dead=m.d;o.hid=m.h;o.hp=m.hp}}
   else if(m.t==='left'){const o=NET.others.get(m.id);if(o){o.gone=true;if(started)msg(o.name+' покинул игру',3)}}
   else if(m.t==='ev'&&NET.coop&&started)onNetEv(m)}}
@@ -513,7 +513,35 @@ const PCOL=['#7cf','#fc7','#c7f','#7f9'];
 function drawOthers(){if(!NET.coop)return;let i=0;for(const[id,o]of NET.others){i++;if(o.gone||!o.seen||o.hid)continue;X.save();X.translate(o.x,o.y);X.globalAlpha=o.dead?.45:1;X.fillStyle=o.dead?'#666':PCOL[i%4];X.beginPath();X.arc(0,0,11,0,7);X.fill();X.strokeStyle='#000';X.lineWidth=2;X.beginPath();X.moveTo(0,0);X.lineTo(Math.cos(o.face||0)*12,Math.sin(o.face||0)*12);X.stroke();
  X.fillStyle='#fff';X.font='bold 12px Arial';X.textAlign='center';X.fillText((o.dead?'☠ ':'')+o.name,0,-17);X.restore()}X.globalAlpha=1}
 function drawPartyHud(){if(!NET.coop||!started||S.dead)return;let y=112;X.textAlign='left';X.font='12px Arial';let i=0;for(const o of NET.others.values()){i++;X.fillStyle='rgba(0,0,0,.55)';X.fillRect(10,y,240,20);X.fillStyle=o.gone?'#777':o.dead?'#c55':PCOL[i%4];X.fillText((o.gone?'(вышел) ':o.dead?'☠ ':'')+o.name+'  — дверь '+pad(o.room||0)+(o.dead?'':'  HP '+(o.hp??100)),16,y+14);y+=22}}
-function toLobby(){netSend({t:'leave'});NET.coop=false;NET.others=new Map();started=false;reset();showLobby(true)}
+
+let ELEV=null;
+function startElev(names,start,dur){const g=names.length>1?3:1.2;ELEV={t:0,g:g,dur:g+3.9,names:names.slice(0,4),start:start||0}}
+function drawElev(){const E=ELEV,G=E.g,t=E.t,d=E.dur,cx=W/2,cy=H/2;X.save();X.globalAlpha=1;
+ const closeE=Math.max(0,Math.min(1,(t-G)/0.8)),openE=Math.max(0,(t-(d-1))/0.9),dc=Math.max(0,closeE-openE);
+ const ride=t>G+0.8&&t<d-1;let sx=0,sy=0;if(ride){const k=t<G+1.2||t>d-1.4?3.5:1.3;sx=(Math.random()-.5)*k*2;sy=(Math.random()-.5)*k*2}
+ X.fillStyle='rgba(0,0,0,'+(openE>0?1-openE:1)+')';X.fillRect(0,0,W,H);X.globalAlpha=openE>0?1-openE*.9:1;X.translate(sx,sy);
+ const bw=440,bh=300,bx=cx-bw/2,by=cy-bh/2+20;
+ // shaft lines moving up
+ X.strokeStyle='#2a2116';X.lineWidth=2;const off=ride?(t*260)%60:0;for(let y=-60;y<H+60;y+=60){X.beginPath();X.moveTo(bx-60,y-off);X.lineTo(bx-20,y-off);X.moveTo(bx+bw+20,y-off);X.lineTo(bx+bw+60,y-off);X.stroke()}
+ // cabin
+ const g=X.createLinearGradient(0,by,0,by+bh);g.addColorStop(0,'#4a3520');g.addColorStop(1,'#24180c');X.fillStyle=g;X.fillRect(bx,by,bw,bh);
+ X.fillStyle='rgba(255,220,150,'+(0.12+0.05*Math.sin(t*20))+')';X.fillRect(bx,by,bw,bh);
+ X.fillStyle='#ffe9b0';X.fillRect(cx-60,by+6,120,4);
+ // people
+ const n=E.names.length;E.names.forEach((nm,i)=>{const px=bx+bw*(i+1)/(n+1),py=by+bh-70;X.fillStyle='#000a';X.beginPath();X.ellipse(px,py+42,22,6,0,0,7);X.fill();X.fillStyle=['#d9b38c','#a8c6e0','#c9e0a8','#e0a8c6'][i];X.beginPath();X.arc(px,py,18,0,7);X.fill();X.fillStyle='#3a5a8a';X.fillRect(px-14,py+16,28,26);X.fillStyle='#fff';X.font='bold 14px sans-serif';X.textAlign='center';X.fillText(nm,px,py-28);
+  if(n>1){const ready=t>0.3+i*(G-0.6)/Math.max(1,n-1);X.fillStyle=ready?'#7f7':'#aaa';X.font='12px sans-serif';X.fillText(ready?'✔ готов':'…',px,py+60)}});
+ // doors
+ const dw=bw/2*dc;X.fillStyle='rgba(138,143,150,.55)';X.fillRect(bx,by,dw,bh);X.fillRect(bx+bw-dw,by,dw,bh);X.fillStyle='#5b6066';if(dc>0.02){X.fillRect(bx+dw-3,by,3,bh);X.fillRect(bx+bw-dw,by,3,bh)}
+ X.strokeStyle='#c9a45a';X.lineWidth=6;X.strokeRect(bx-3,by-3,bw+6,bh+6);
+ // indicator
+ const target=E.start,prog=Math.max(0,Math.min(1,(t-G-0.8)/(d-G-1.8))),fl=Math.round(Math.max(1,target)*prog);
+ X.fillStyle='#120b05';X.fillRect(cx-70,by-62,140,44);X.strokeStyle='#c9a45a';X.lineWidth=2;X.strokeRect(cx-70,by-62,140,44);
+ X.fillStyle='#ff5a2a';X.font='bold 26px monospace';X.textAlign='center';X.fillText((prog<1?'▼ ':'')+String(fl).padStart(3,'0'),cx,by-31);
+ X.setTransform(1,0,0,1,0,0);X.globalAlpha=1;X.fillStyle='#e8d6a8';X.font='16px sans-serif';X.textAlign='center';
+ const left=Math.max(0,Math.ceil(d-1-t));X.fillText(t<G?(n>1?'Лифт собирается… отправление через '+Math.ceil(G-t):'Двери закрываются…'):t<d-1?'Спуск на этаж… '+left:'Двери открываются',cx,H-30);
+ X.font='13px sans-serif';X.fillStyle='#b9a77f';X.fillText('Отель • старт с двери '+String(target).padStart(3,'0'),cx,H-12);X.restore()}
+
+function toLobby(){ELEV=null;netSend({t:'leave'});NET.coop=false;NET.others=new Map();started=false;reset();showLobby(true)}
 let NAME=localStorage.getItem('d2name')||'',LOBSTART=0;
 function lobStatus(s){const e=document.getElementById('lst');if(e)e.textContent=s}
 function showLobby(v){document.getElementById('lob').style.display=v?'flex':'none'}
@@ -542,12 +570,12 @@ function initLobby(){const d=document.createElement('div');d.id='lob';d.innerHTM
  document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{LOBSTART=+b.dataset.s;netSend({t:'cfg',start:LOBSTART});renderLobby()});
  document.getElementById('lso').onclick=()=>{au();saveName();soloStart()};document.getElementById('lcr').onclick=()=>{au();saveName();netSend({t:'create',floor:'hotel',start:LOBSTART})};
  document.getElementById('lcd').onclick=()=>{au();showLobby(false);showCredits=true};d.addEventListener('pointerdown',()=>au());renderLobby();netConnect()}
-function soloStart(){if(NET.party)netSend({t:'leave'});NET.coop=false;reset({start:LOBSTART});started=true;showLobby(false)}
+function soloStart(){startElev([(document.getElementById('lnm')||{}).value||'Ты'],LOBSTART,4);if(NET.party)netSend({t:'leave'});NET.coop=false;reset({start:LOBSTART});started=true;showLobby(false)}
 
 // ---------- LOOP ----------
 reset();initLobby();let last=performance.now();
 function drawCredits(){if(!showCredits)return;X.fillStyle='#000';X.fillRect(0,0,W,H);X.textAlign='center';X.fillStyle='#d9b86a';X.font='bold 26px Georgia';X.fillText('Звуки и музыка (свободные лицензии)',W/2,40);X.font='12px Arial';CREDITS.forEach((c,i)=>{X.fillStyle='#ddd';X.fillText(c[0]+'  ['+c[2]+']',W/2,72+i*27);X.fillStyle='#8ab';X.fillText(c[1],W/2,85+i*27)});X.fillStyle='#aaa';X.fillText('Оригинальные звуки DOORS/Roblox не используются. Подробности: CREDITS.txt. Загружено файлов: '+audioLoaded+'/'+AUDIO_FILES.length+'. K — закрыть',W/2,H-12)}
-function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);render();X.globalAlpha=1;drawPartyHud();drawCredits();requestAnimationFrame(loop)}
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(ELEV){ELEV.t+=dt;audioTick(dt);netTick(dt);if(ELEV.t>=ELEV.dur){ELEV=null;S.shake=.3}}else update(dt);render();if(ELEV)drawElev();X.globalAlpha=1;if(!ELEV)drawPartyHud();drawCredits();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
-window.__pass=passable;window.__doors={get P(){return P},get S(){return S},get rooms(){return rooms},get doors(){return doors},get frames(){return frames},enterRoom,update,render,innerOf,bfs,handleKey,get allDoors(){return allDoors},get TM(){return TM},startRush,reset,revive,NET,get SEED(){return SEED},get START(){return START},mkFigure,useCrucifix,get DBTN(){return DBTN},soloStart,get libCode(){return libCode},setStarted(){showLobby(false);started=true}};
+window.__pass=passable;window.__doors={get P(){return P},get S(){return S},get rooms(){return rooms},get doors(){return doors},get frames(){return frames},enterRoom,update,render,innerOf,bfs,handleKey,get allDoors(){return allDoors},get TM(){return TM},startRush,reset,revive,NET,get SEED(){return SEED},get START(){return START},mkFigure,useCrucifix,get DBTN(){return DBTN},soloStart,get ELEV(){return ELEV},skipElev(){ELEV=null},get libCode(){return libCode},setStarted(){showLobby(false);started=true}};
 </script></body></html>
