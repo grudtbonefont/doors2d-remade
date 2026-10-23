@@ -1,0 +1,40 @@
+DOORS 2D — fan remake. Audio credits
+No original DOORS / Roblox audio is used. All files below are free-licensed
+(CC0 1.0 Public Domain, https://creativecommons.org/publicdomain/zero/1.0/).
+Files were trimmed, pitch-shifted, converted to mono OGG Vorbis.
+
+audio/door_open.ogg      Kenney "RPG Audio" doorOpen_1         https://kenney.nl/assets/rpg-audio        CC0
+audio/door_creak.ogg     Kenney "RPG Audio" creak1             https://kenney.nl/assets/rpg-audio        CC0
+audio/door_slam.ogg      Kenney "RPG Audio" doorClose_4        https://kenney.nl/assets/rpg-audio        CC0
+audio/door_locked.ogg    Kenney "RPG Audio" metalLatch         https://kenney.nl/assets/rpg-audio        CC0
+audio/door_unlock.ogg    Kenney "RPG Audio" metalClick         https://kenney.nl/assets/rpg-audio        CC0
+audio/pickup.ogg         Kenney "RPG Audio" handleSmallLeather https://kenney.nl/assets/rpg-audio        CC0
+audio/gold.ogg           Kenney "RPG Audio" handleCoins        https://kenney.nl/assets/rpg-audio        CC0
+audio/wardrobe_in.ogg    Kenney "RPG Audio" doorClose_1        https://kenney.nl/assets/rpg-audio        CC0
+audio/wardrobe_out.ogg   Kenney "RPG Audio" doorOpen_2         https://kenney.nl/assets/rpg-audio        CC0
+audio/step_walk.ogg      Kenney "Impact Sounds" footstep_wood_000   https://kenney.nl/assets/impact-sounds CC0
+audio/step_run.ogg       Kenney "Impact Sounds" footstep_wood_003   https://kenney.nl/assets/impact-sounds CC0
+audio/step_crouch.ogg    Kenney "Impact Sounds" footstep_carpet_000 https://kenney.nl/assets/impact-sounds CC0
+audio/drawer_open.ogg    Kenney "Impact Sounds" impactWood_light_002 https://kenney.nl/assets/impact-sounds CC0
+audio/figure_step.ogg    Kenney "Impact Sounds" impactPunch_heavy_000 (pitched down) https://kenney.nl/assets/impact-sounds CC0
+audio/eyes_hum.ogg       Kenney "Sci-Fi Sounds" forceField_000      https://kenney.nl/assets/sci-fi-sounds CC0
+audio/rush_rumble.ogg    Kenney "Sci-Fi Sounds" lowFrequency_explosion_000 https://kenney.nl/assets/sci-fi-sounds CC0
+audio/light_flicker.ogg  Kenney "Interface Sounds" glitch_001       https://kenney.nl/assets/interface-sounds CC0
+audio/light_buzz.ogg     themightyglider "Electric Buzz"     https://opengameart.org/content/electric-buzz CC0
+audio/rush.ogg           trazzz123 "CC0 Deep Monster Roar" (pitched down) https://opengameart.org/content/cc0-deep-monster-roar CC0
+audio/ambush.ogg         rubberduck "80 CC0 creature SFX" scream_02 (pitched down) https://opengameart.org/content/80-cc0-creature-sfx CC0
+audio/screech_bite.ogg   rubberduck "80 CC0 creature SFX" eat_01   https://opengameart.org/content/80-cc0-creature-sfx CC0
+audio/seek_eyes.ogg      rubberduck "80 CC0 creature SFX" weird_01 https://opengameart.org/content/80-cc0-creature-sfx CC0
+audio/figure_growl.ogg   rubberduck "80 CC0 creature SFX" monster_03 (pitched down) https://opengameart.org/content/80-cc0-creature-sfx CC0
+audio/screech_psst.ogg   qubodup "Ghost breath" (high-passed, trimmed) https://opengameart.org/content/ghost-breath CC0
+audio/heartbeat.ogg      qubodup "Heartbeat (single sound)"  https://opengameart.org/content/heartbeat-single-sound CC0
+audio/halt_static.ogg    bretbernhoft "Frequency Static Sound Effects" static3 (6 s) https://opengameart.org/content/frequency-static-sound-effects CC0
+audio/rain.ogg           wuxiascrub "Rain + Long Thunder"    https://opengameart.org/content/rain-long-thunder CC0
+audio/music_hotel.ogg    cleytonkauffman "Ambient Horror Track 01" https://opengameart.org/content/ambient-horror-track-01 CC0
+audio/music_library.ogg  epb9000 "Creepy Ambient Loop"       https://opengameart.org/content/creepy-ambient-loop CC0
+audio/music_shop.ogg     joth "Bossa Nova"                   https://opengameart.org/content/bossa-nova CC0
+audio/music_door100.ogg  killerfishred "Menace Synth Track"  https://opengameart.org/content/menace-synth-track CC0
+audio/seek_chase.ogg     wolfgang "Chase!"                   https://opengameart.org/content/chase CC0
+audio/death.ogg          robin-lamb "Game Over Dark Short Music Clips" gameoverdark https://opengameart.org/content/game-over-dark-short-music-clips CC0
+audio/win.ogg            umplix "Level Complete!" level_finished_1 (first 7 s) https://opengameart.org/content/level-complete CC0
+Each sound is shipped as both .ogg and .mp3 (same content).
