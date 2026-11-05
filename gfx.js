@@ -55,12 +55,12 @@ function paintAO(g,x,y,px,py){// shadows cast by walls onto floor (light from ab
  if(w){const q=g.createLinearGradient(px,0,px+9,0);q.addColorStop(0,'rgba(0,0,0,.4)');q.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=q;g.fillRect(px,py,9,T)}
  if(e){const q=g.createLinearGradient(px+T,0,px+T-7,0);q.addColorStop(0,'rgba(0,0,0,.3)');q.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=q;g.fillRect(px+T-7,py,7,T)}
  if(!isFloor(x,y+1)){g.fillStyle='rgba(0,0,0,.18)';g.fillRect(px,py+T-3,T,3)}}
-const CH=8,CPX=CH*T;let CHUNKS=new Map(),CHT=null;
-function chunk(cx,cy){if(CHT!==tiles){CHUNKS=new Map();CHT=tiles}const k=cx+','+cy;let c=CHUNKS.get(k);if(c){c.u=frames;return c.c}
- const cv=document.createElement('canvas');cv.width=cv.height=CPX;const g=cv.getContext('2d');
+const CH=8,CPX=CH*T;let CHUNKS=new Map(),CHT=null,CHS=0;
+function chunk(cx,cy){const cs=Math.min(3,Math.ceil(SC*2)/2);if(CHT!==tiles||CHS!==cs){CHUNKS=new Map();CHT=tiles;CHS=cs}const k=cx+','+cy;let c=CHUNKS.get(k);if(c){c.u=frames;return c.c}
+ const cv=document.createElement('canvas');cv.width=cv.height=Math.ceil(CPX*CHS);const g=cv.getContext('2d');g.scale(CHS,CHS);
  for(let ty=0;ty<CH;ty++)for(let tx=0;tx<CH;tx++){const x=cx*CH+tx,y=cy*CH+ty;if(x>=GW||y>=GH)continue;const t=tiles[idx(x,y)],px=tx*T,py=ty*T;
-  if(t===0){let nb=false;for(let dy=-1;dy<=1&&!nb;dy++)for(let dx=-1;dx<=1;dx++)if(isFloor(x+dx,y+dy)){nb=true;break}if(nb)paintWall(g,x,y,px,py);continue}
-  let r=rooms[rmap[idx(x,y)]];if(t===2){const d=doorAt.get(idx(x,y));if(d)r=rooms[d.room]}paintFloor(g,SUB(r),x,y,px,py);paintAO(g,x,y,px,py)}
+  if(t===0){let nb=false;for(let dy=-1;dy<=1&&!nb;dy++)for(let dx=-1;dx<=1;dx++)if(isFloor(x+dx,y+dy)){nb=true;break}if(nb){paintWall(g,x,y,px,py);if(isFloor(x,y+1)){g.fillStyle='rgba(0,0,0,.55)';g.fillRect(px,py+T-1,T,1);g.fillStyle='rgba(255,225,170,.10)';g.fillRect(px,py+T-4,T,.6)}if(isFloor(x,y-1)){g.fillStyle='rgba(255,225,170,.14)';g.fillRect(px,py,T,.7)}if(isFloor(x-1,y)){g.fillStyle='rgba(0,0,0,.35)';g.fillRect(px,py,.7,T)}if(isFloor(x+1,y)){g.fillStyle='rgba(0,0,0,.35)';g.fillRect(px+T-.7,py,.7,T)}}continue}
+  let r=rooms[rmap[idx(x,y)]];if(t===2){const d=doorAt.get(idx(x,y));if(d)r=rooms[d.room]}paintFloor(g,SUB(r),x,y,px,py);paintAO(g,x,y,px,py);g.fillStyle='rgba(0,0,0,.07)';g.fillRect(px,py,T,.5);g.fillRect(px,py,.5,T)}
  CHUNKS.set(k,{c:cv,u:frames});if(CHUNKS.size>90){let o=null,ou=1e18;for(const[kk,v]of CHUNKS)if(v.u<ou){ou=v.u;o=kk}CHUNKS.delete(o)}return cv}
 // ---- doors ----
 drawDoor=function(px,py,num,state){const g=X;
@@ -198,7 +198,7 @@ render=function(){
  stepParticles(dt,cx,cy);
  X.fillStyle='#050403';X.fillRect(0,0,W,H);X.save();X.translate(-cx,-cy);
  const c0=Math.max(0,Math.floor(cx/CPX)),c1=Math.floor((cx+W)/CPX),r0=Math.max(0,Math.floor(cy/CPX)),r1=Math.floor((cy+H)/CPX);
- for(let yy=r0;yy<=r1;yy++)for(let xx=c0;xx<=c1;xx++){if(xx*CH>=GW||yy*CH>=GH)continue;X.drawImage(chunk(xx,yy),xx*CPX,yy*CPX)}
+ for(let yy=r0;yy<=r1;yy++)for(let xx=c0;xx<=c1;xx++){if(xx*CH>=GW||yy*CH>=GH)continue;X.drawImage(chunk(xx,yy),xx*CPX,yy*CPX,CPX,CPX)}
  const x0=Math.max(0,Math.floor(cx/T)),x1=Math.min(GW-1,Math.ceil((cx+W)/T)),y0=Math.max(0,Math.floor(cy/T)),y1=Math.min(GH-1,Math.ceil((cy+H)/T));
  // dynamic wall details: windows w/ rain, eye walls
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(tiles[idx(x,y)]!==0||!isFloor(x,y+1))continue;const rr2=rooms[rmap[idx(x,y)]];if(!rr2)continue;const px=x*T,py=y*T,sb=SUB(rr2);
@@ -237,7 +237,7 @@ render=function(){
  for(const o of room.objs)if(!o.gone&&(o.t==='fire'||o.t==='book'||o.t==='fuse'))lamp(o.x*T+16-cx,o.y*T+16-cy,o.t==='fire'?110+Math.sin(t*13)*6:44,.7);
  for(const d of S.drops)if(d.it==='glowstick'&&Math.abs(d.room-P.room)<=1)lamp(d.x-cx,d.y-cy,150,.9);
  if(window.lightX)lightX(cx,cy);
- LX.globalCompositeOperation='source-over';X.drawImage(L,0,0);
+ LX.globalCompositeOperation='source-over';X.drawImage(L,0,0,W,H);
  // additive warm glow
  if(hq){X.save();X.globalCompositeOperation='lighter';if(lampsOn)for(let n=nr0;n<=nr1;n++)for(const l of rooms[n].lamps)glow(X,l.x-cx,l.y-cy+6,150*fogK,'255,170,80',.08);
   if(!P.hidden&&(held('lighter')||held('candle')))glow(X,sx,sy,110,'255,150,60',.12);for(const o of room.objs)if(!o.gone&&o.t==='fire')glow(X,o.x*T+16-cx,o.y*T+16-cy,90,'255,110,30',.14);
@@ -273,7 +273,7 @@ box=function(x,y,w,h){const g=X.createLinearGradient(0,y,0,y+h);g.addColorStop(0
 // ---- post effects ----
 let hurtFx=0,lastHp=100;
 function postFX(){const hq=HQ();if(P.hp<lastHp-1)hurtFx=1;lastHp=P.hp;
- if(hurtFx>0&&started){hurtFx=Math.max(0,hurtFx-.035);if(hq){if(!tmpC){tmpC=document.createElement('canvas');tmpC.width=W;tmpC.height=H}const g=tmpC.getContext('2d');g.clearRect(0,0,W,H);g.drawImage(C,0,0);const o=6*hurtFx;X.save();X.globalCompositeOperation='lighter';X.globalAlpha=.35*hurtFx;X.drawImage(tmpC,-o,0);X.globalCompositeOperation='multiply';X.fillStyle='rgba(255,60,60,'+.5*hurtFx+')';X.fillRect(0,0,W,H);X.restore();X.save();X.globalAlpha=.3*hurtFx;X.globalCompositeOperation='screen';X.drawImage(tmpC,o,0);X.restore()}else{X.fillStyle='rgba(160,0,0,'+.3*hurtFx+')';X.fillRect(0,0,W,H)}}
+ if(hurtFx>0&&started){hurtFx=Math.max(0,hurtFx-.035);if(hq){if(!tmpC){tmpC=document.createElement('canvas');tmpC.width=C.width;tmpC.height=C.height}const g=tmpC.getContext('2d');g.clearRect(0,0,tmpC.width,tmpC.height);g.drawImage(C,0,0);const o=6*hurtFx;X.save();X.globalCompositeOperation='lighter';X.globalAlpha=.35*hurtFx;X.drawImage(tmpC,-o,0,W,H);X.globalCompositeOperation='multiply';X.fillStyle='rgba(255,60,60,'+.5*hurtFx+')';X.fillRect(0,0,W,H);X.restore();X.save();X.globalAlpha=.3*hurtFx;X.globalCompositeOperation='screen';X.drawImage(tmpC,o,0,W,H);X.restore()}else{X.fillStyle='rgba(160,0,0,'+.3*hurtFx+')';X.fillRect(0,0,W,H)}}
  if(hq&&SET.grain){if(!grainC)mkGrain();const c=grainC[frames%4],ox=(frames*37)%160,oy=(frames*71)%160;X.save();X.globalCompositeOperation='overlay';X.fillStyle=X.createPattern(c,'repeat');X.translate(-ox,-oy);X.fillRect(0,0,W+160,H+160);X.restore()}
  const g=X.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.95);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.55)');X.fillStyle=g;X.fillRect(0,0,W,H)}
 // ---- HUD extras: tooltip on hovered slot, compact top chips ----
@@ -323,7 +323,7 @@ function remap(e){if(e.__d2)return;
 window.addEventListener('keydown',remap,true);window.addEventListener('keyup',remap,true);
 // ---- loop with pause & post FX ----
 let fpsA=60,fpsT=performance.now();window.__fps=()=>fpsA;
-loop=function(now){const dt=Math.min(.05,(now-last)/1000);last=now;fpsA=fpsA*.95+(dt>0?1/dt:60)*.05;
+loop=function(now){X.setTransform(SC,0,0,SC,0,0);LX.setTransform(SC,0,0,SC,0,0);const dt=Math.min(.05,(now-last)/1000);last=now;fpsA=fpsA*.95+(dt>0?1/dt:60)*.05;
  if(paused){requestAnimationFrame(loop);return}
  if(ELEV){ELEV.t+=dt;audioTick(dt);netTick(dt);if(ELEV.t>=ELEV.dur){ELEV=null;S.shake=.3}}else update(dt);
  if(window.preUpdateX)preUpdateX(dt);render();if(ELEV)drawElev();X.globalAlpha=1;if(!ELEV)drawPartyHud();if(started&&!ELEV)postFX();drawCredits();if(window.overlayX)overlayX(dt);requestAnimationFrame(loop)};
@@ -334,7 +334,7 @@ const mcss=document.createElement('style');mcss.textContent=`#lob{background:tra
 #lob button{font-family:${FU}!important;border-radius:8px!important;transition:.15s;border:1px solid #8a6a3a!important;background:linear-gradient(#3a2614,#1e140a)!important;color:#f0d48a!important}#lob button:hover{transform:translateY(-1px);box-shadow:0 0 14px rgba(240,200,110,.3)}
 #lob input{background:#120c07!important;color:#f0d48a!important;border:1px solid #6a4a2a!important;border-radius:6px!important}
 @media (max-width:640px){#lob .lb{padding:12px!important}#lob h1{font-size:30px!important}}`;document.head.appendChild(mcss);
-(function mb(){const lob=document.getElementById('lob'),vis=lob&&lob.style.display!=='none';MBG.style.display=vis?'block':'none';if(vis){const w=MBG.width=innerWidth,h=MBG.height=innerHeight,g=MBG.getContext('2d'),t=performance.now()/1000;
+(function mb(){const lob=document.getElementById('lob'),vis=lob&&lob.style.display!=='none';MBG.style.display=vis?'block':'none';if(vis){const dp=Math.min(2,devicePixelRatio||1),w=innerWidth,h=innerHeight;MBG.width=w*dp;MBG.height=h*dp;const g=MBG.getContext('2d');g.setTransform(dp,0,0,dp,0,0);const t=performance.now()/1000;
  const bg=g.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#0c0805');bg.addColorStop(1,'#020101');g.fillStyle=bg;g.fillRect(0,0,w,h);
  // receding corridor of doors
  const vx=w/2,vy=h*.48;for(let i=9;i>=0;i--){const z=((i+(t*.25)%1));const s=1/(z*.55+.35),dw=w*.5*s,dh=h*.55*s,a=Math.min(1,s*.6);g.strokeStyle='rgba(217,184,106,'+a*.35+')';g.lineWidth=1.5*s;g.strokeRect(vx-dw/2,vy-dh/2,dw,dh);

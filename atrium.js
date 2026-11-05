@@ -1,6 +1,6 @@
 // atrium.js — walkable lobby «Атриум отеля «Порог»» (original design)
 (function(){
-const T=32,GW=44,GH=26,VW=960,VH=540;
+const T=32,GW=44,GH=26;let VW=960,VH=540;
 const FLO=[['hotel','Отель','#d9b86a'],['mines','Копи','#c98a4a'],['back','Изнанка','#b8b070'],['garden','Сад','#6ac070'],['archive','Архив','#7aa8e0'],['stair','Колодец','#e07a5a']];
 const ELV=FLO.map((f,i)=>({f:f[0],name:f[1],col:f[2],x:5+i*6,y:1,w:3,h:3}));// cab tiles x..x+2, y 1..3
 const KI=[{id:'shop',name:'Лавка жетонов',sub:'Ключница Агата',x:4,y:13,col:'#e8c46a'},{id:'stats',name:'Доска рекордов',sub:'достижения',x:2,y:8,col:'#9ad'},
@@ -10,7 +10,7 @@ const PL0={x:22*T,y:19*T};
 let on=false,menu=false,me={x:PL0.x,y:PL0.y,face:0,ph:0},K={},others=new Map(),bub=null,es=0,cab=null,cabT=0,lpT=0,tgt=null,near=null,last=performance.now(),solids=[],tick=0;
 const cv=document.createElement('canvas');cv.id='atc';cv.width=VW;cv.height=VH;cv.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:11;display:none;touch-action:none;background:#000';
 const g=cv.getContext('2d');document.body.appendChild(cv);
-function fitc(){const s=Math.min(innerWidth/VW,innerHeight/VH);cv.style.width=VW*s+'px';cv.style.height=VH*s+'px'}addEventListener('resize',fitc);fitc();
+function fitc(){VW=W;VH=H;cv.width=C.width;cv.height=C.height;cv.style.width=C.style.width;cv.style.height=C.style.height;cv.style.left=C.style.left;cv.style.top=C.style.top;cv.style.transform='none'}addEventListener('resize',()=>setTimeout(fitc,0));if(window.visualViewport)visualViewport.addEventListener('resize',()=>setTimeout(fitc,0));fitc();
 const ui=document.createElement('div');ui.id='atui';ui.style.cssText='position:fixed;inset:0;z-index:13;pointer-events:none;display:none;font:14px Arial';
 ui.innerHTML=`<button id="atMenu" style="position:absolute;right:10px;top:10px;pointer-events:auto">☰ Меню</button>
 <div id="atEmo" style="position:absolute;left:10px;bottom:10px;pointer-events:auto;display:flex;gap:6px">${['👋 Привет','❗ Сюда!','⏳ Жду','🎉 Ура','❓ ?'].map((t,i)=>`<button data-e="${i+1}">${t}</button>`).join('')}</div>
@@ -31,7 +31,7 @@ function build(){solids=[];const W=(x,y,w,h,k)=>solids.push({x:x*T,y:y*T,w:w*T,h
 function unl(f){try{return !!(__fl.UNL[f])}catch(e){return f==='hotel'}}
 const hit=(x,y,r)=>solids.some(s=>x+r>s.x&&x-r<s.x+s.w&&y+r>s.y&&y-r<s.y+s.h);
 // floor cache
-let FC=null;function floorCache(){FC=document.createElement('canvas');FC.width=GW*T;FC.height=GH*T;const f=FC.getContext('2d');
+let FC=null;function floorCache(){FC=document.createElement('canvas');FC.width=GW*T*2;FC.height=GH*T*2;const f=FC.getContext('2d');f.scale(2,2);
  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){f.fillStyle=(x+y)%2?'#2b2420':'#3a322a';f.fillRect(x*T,y*T,T,T);f.fillStyle='rgba(255,255,255,.03)';f.fillRect(x*T,y*T,T,1)}
  f.fillStyle='rgba(110,20,30,.55)';f.fillRect(20*T,15*T,4*T,10*T);f.fillRect(4*T,17*T,36*T,2*T);f.strokeStyle='rgba(220,180,90,.5)';f.lineWidth=2;f.strokeRect(20*T+4,15*T+4,4*T-8,10*T-8);f.strokeRect(4*T+4,17*T+4,36*T-8,2*T-8);
  f.fillStyle='rgba(217,184,106,.15)';f.beginPath();f.arc(22*T,13*T,4*T,0,7);f.fill();f.strokeStyle='rgba(217,184,106,.4)';f.beginPath();f.arc(22*T,13*T,3.6*T,0,7);f.stroke();
@@ -92,7 +92,7 @@ function char(x,y,face,ph,col,name,me_,sk,mv){if(window.d2drawSkin&&sk!==false){
  const s=Math.sin(ph)*3;g.fillStyle='#222';g.fillRect(x-8+s,y+9,5,4);g.fillRect(x+3-s,y+9,5,4);
  g.font='bold 12px Arial';g.textAlign='center';g.fillStyle='rgba(0,0,0,.7)';g.fillText(name,x+1,y-19);g.fillStyle=me_?'#ffe08a':'#fff';g.fillText(name,x,y-20)}
 function bubble(x,y,t){g.font='bold 13px Arial';const w=g.measureText(t).width+14;g.fillStyle='rgba(255,255,255,.95)';g.fillRect(x-w/2,y-58,w,22);g.beginPath();g.moveTo(x-5,y-36);g.lineTo(x+5,y-36);g.lineTo(x,y-30);g.fill();g.fillStyle='#222';g.textAlign='center';g.fillText(t,x,y-42)}
-function draw(){const c=camera();g.setTransform(1,0,0,1,0,0);g.fillStyle='#000';g.fillRect(0,0,VW,VH);g.translate(-Math.round(c.x),-Math.round(c.y));g.drawImage(FC,0,0);
+function draw(){const c=camera();g.setTransform(SC,0,0,SC,0,0);g.fillStyle='#000';g.fillRect(0,0,VW,VH);g.translate(-Math.round(c.x),-Math.round(c.y));g.drawImage(FC,0,0,GW*T,GH*T);
  // rain at entrance
  for(let i=0;i<30;i++){const rx=18*T+((i*53+tick*300)%(8*T)),ry=(GH-1)*T+((i*17+tick*600)%T);g.strokeStyle='rgba(150,180,220,.4)';g.beginPath();g.moveTo(rx,ry);g.lineTo(rx-3,ry+8);g.stroke()}
  // elevators
@@ -120,7 +120,7 @@ function draw(){const c=camera();g.setTransform(1,0,0,1,0,0);g.fillStyle='#000';
  char(me.x,me.y,me.face,me.ph,'',NAME||'Ты',true,window.d2skinCode?d2skinCode():'',me.mv);if(bub)bubble(me.x,me.y,bub.t);
  // hint
  if(near){g.font='bold 14px Arial';g.textAlign='center';g.fillStyle='#fff';g.fillText(near.kind==='kiosk'?'[E] '+near.k.name:'🔒 Закрыто',me.x,me.y+34)}
- g.setTransform(1,0,0,1,0,0);
+ g.setTransform(SC,0,0,SC,0,0);
  // HUD
  g.fillStyle='rgba(0,0,0,.55)';g.fillRect(10,10,330,46);g.fillStyle='#d9b86a';g.font='bold 18px Georgia';g.textAlign='left';g.fillText('Атриум отеля «Порог»',18,32);g.fillStyle='#aaa';g.font='12px Arial';g.fillText((NET.ok?'Онлайн: '+NET.lobby.players.length:'Офлайн')+' • WASD/тап — идти • E — действие • 1–5 — эмоции',18,49);
  const p=myParty();if(cab){const w=360,x=VW/2-w/2;g.fillStyle='rgba(20,14,8,.88)';g.fillRect(x,10,w,74);g.strokeStyle=cab.col;g.strokeRect(x,10,w,74);g.fillStyle=cab.col;g.font='bold 15px Arial';g.textAlign='center';
