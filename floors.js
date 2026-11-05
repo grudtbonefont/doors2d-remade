@@ -340,7 +340,7 @@ const _ss=soloStart;soloStart=function(){setFLR(LOBF);_ss()};
 setInterval(mkSel,1000);
 const _tl=toLobby;toLobby=function(){setFLR('hotel');_tl()};
 // test hooks
-window.__fl={FL,UNL,unlockAll(){for(const f in FL)UNL[f]=1;saveU();paintSel()},go(f,seed){setFLR(f);reset({seed:seed||1234,start:0});started=true;ELEV=null},
+window.__fl={FL,UNL,unlockAll(){for(const f in FL)UNL[f]=1;saveU();paintSel()},go(f,seed){setFLR(f);if(typeof showLobby==="function")showLobby(false);reset({seed:seed||1234,start:0});started=true;ELEV=null},
  tp(n){const r=rooms[n],p=randomFloor(r);P.x=p.x;P.y=p.y;for(let k=0;k<n;k++){const d=doors[k];if(d){d.open=true;d.locked=false;d.sealed=false;d.vine=false}}enterRoom(r)},
  interact:o=>myInteract(o),win:()=>S.win,state:()=>({FLR,room:P.room,hp:P.hp,dead:S.dead,win:S.win,clock:S.clock,heat:S.heat,cards:S.cards,lant:S.lant,dam:S.dam&&S.dam.ph,nest:S.nest&&S.nest.i})};
 })();
