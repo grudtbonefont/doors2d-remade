@@ -40,3 +40,6 @@ audio/win.ogg            umplix "Level Complete!" level_finished_1 (first 7 s) h
 audio/elevator.ogg       Pro Sensory (Alex McCulloch) "Elevator Music" (first 90 s)   https://opengameart.org/content/elevator-music CC0
 audio/lobby.ogg          Pro Sensory (Alex McCulloch) "Elevator Music 2" (first 90 s) https://opengameart.org/content/elevator-music-2 CC0
 Each sound is shipped as both .ogg and .mp3 (same content).
+
+Fonts: Cormorant Garamond and Rubik (Google Fonts, SIL Open Font License 1.1).
+All monsters, art, room content and mechanics text are original to this project; no DOORS/Roblox assets.
