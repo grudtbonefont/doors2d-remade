@@ -130,7 +130,7 @@ let CARRY=null;
 const _reset=reset;reset=function(o){o=o||{};if(FLR!=='hotel')o.start=0;_reset(o);
  S.fl={};S.lant=0;S.cards=0;S.mutes=0;S.vents=0;S.gAlerted=false;
  if(CARRY){const c=CARRY;CARRY=null;P.inv=c.inv.slice();P.gold=c.gold;P.hp=Math.max(40,c.hp);P.skey=c.skey;P.bat=c.bat}
- if(FLR!=='hotel'){const m={mines:'Копи «Глубокий Шов». Генератор у входа мёртв — найди 2 свечи зажигания.',back:'Изнанка. Время идёт против тебя — дёргай рычаги-часы!',garden:'Сумеречный сад. Не топай по газону — Садовод слышит. Найди ножницы в сарае.',archive:'Нижний Архив. Пропуска сектора выдают терминалы.',stair:'Лестничный колодец. Становится жарко... ищи вентиляции.'}[FLR];msg(m,6)}
+ if(FLR!=='hotel'&&FLR!=='halls'){const m={mines:'Копи «Глубокий Шов». Генератор у входа мёртв — найди 2 свечи зажигания.',back:'Изнанка. Время идёт против тебя — дёргай рычаги-часы!',garden:'Сумеречный сад. Не топай по газону — Садовод слышит. Найди ножницы в сарае.',archive:'Нижний Архив. Пропуска сектора выдают терминалы.',stair:'Лестничный колодец. Становится жарко... ищи вентиляции.'}[FLR];msg(m,6)}
  if(FLR==='stair')S.heat=0;if(FLR==='back')S.clock=null;
  S.muteT=30+Math.random()*20};
 function goFloor(f,seed,carry,remote){if(carry)CARRY={inv:P.inv,gold:P.gold,hp:P.hp,skey:P.skey,bat:P.bat};
@@ -151,11 +151,12 @@ function apply(o,a,ex){const r=rooms[o.r];
   case 'agate':break;
   case 'aterm':o.used=true;break;
   case 'pump':r.fl=0;break;
-  case 'lantp':o.gone=true;S.lant=(S.lant||0)+1;break}}
+  case 'lantp':o.gone=true;S.lant=(S.lant||0)+1;break;
+  default:if(window.FLXA&&FLXA[o.t])FLXA[o.t](o,a,ex)}}
 function door(n){const d=doors[n];if(d){d.sealed=false;d.open=true}}
 function myInteract(o){
  switch(o.t){
-  case 'gen':if(o.dam){if(S.dam&&S.dam.ph>=3)winFloor('Плотина запущена, Смоль ушла в глубину — ты выбрался из Копей!','N — Перейти на следующий этаж ещё нет: ты прошёл все Копи!');else{SND.bad();msg('Сначала перекрой все вентили плотины',2)}return}
+  case 'gen':if(o.dam){if(S.dam&&S.dam.ph>=3)winFloor('Плотина запущена, Смоль ушла в глубину — ты выбрался из Копей!','');else{SND.bad();msg('Сначала перекрой все вентили плотины',2)}return}
    if(P.inv.includes('mfuse')){removeItem('mfuse');o.have=(o.have||0)+1;tone(500,.1,'square',.06);fx(o,'fuse');apply(o,'');msg('Свеча вставлена ('+o.have+'/'+o.need+')',2)}else{SND.bad();msg('Нужны свечи зажигания ('+(o.have||0)+'/'+o.need+') — ищи в ящиках',2.5)}return;
   case 'sdoor':if(P.inv.includes('skey')){P.skey=(P.skey||3)-1;if(P.skey<=0)removeItem('skey');A('fl_portal');SND.lock();goFloor(o.to,(SEED*31+o.r*7)|0,true)}else{SND.bad();msg('Дверь с черепом. Нужен ключ-отмычка.',2.5)}return;
   case 'pump':rooms[o.r].fl=0;fx(o,'pump');tone(180,.4,'sawtooth',.05);msg('Вода уходит...',2);return;
@@ -172,10 +173,11 @@ function myInteract(o){
   case 'ggate':if((S.lant||0)>=3){o.used=true;winFloor('Ворота сада распахнулись, Садовод остался в тумане.','');if(!S.gAlerted)A('fl_gq')}else{SND.bad();msg('Нужно 3 обережных фонаря ('+(S.lant||0)+'/3)',2.5)}return;
   case 'aterm':o.used=true;if(addItem('card')){S.cards=(S.cards||0)+1;SND.pick();msg('Пропуск сектора '+'АБВ'[o.sec-1]+' получен',2.5);fx(o,'')}else o.used=false;return;
   case 'vent':o.cd=12;S.heat=Math.max(0,(S.heat||0)-45);S.ember=null;S.vents=(S.vents||0)+1;if(S.vents>=8)A('fl_vent');noise&&noise(.5,.2,800);msg('Свежий воздух!',1.5);return;
+  default:if(window.FLXI&&FLXI[o.t]){FLXI[o.t](o);return}return;
   case 'fdesk':o.used=true;SND.drawer();{const R=Math.random();if(R<.5){const g=ri(5,25);P.gold+=g;SND.gold();msg('+'+g+' золота')}else if(R<.75){const it=pick(['battery','lockpick','vitamins','candle']);if(addItem(it))msg('Найдено: '+ITEM[it].n)}else msg('Только пыльные бумаги...')}return}}
 function cut(){if(!P.inv.includes('shears')||!(P.shear>0)){SND.bad();msg('Нужны садовые ножницы',2);return false}P.shear--;if(P.shear<=0){removeItem('shears');msg('Ножницы сломались')}tone(1400,.05,'square',.05);return true}
 function winFloor(t,n){if(S.win)return;S.win=true;S.winT=t;S.winN=n||'';SND.win();netEv({k:'win'});const nx={hotel:'mines'}[FLR];
- A({mines:'fl_mines',back:'fl_back',garden:'fl_garden',archive:'fl_arch',stair:'fl_stair'}[FLR]);
+ A({mines:'fl_mines',back:'fl_back',garden:'fl_garden',archive:'fl_arch',stair:'fl_stair',halls:'fl_halls'}[FLR]);try{const w=JSON.parse(localStorage.getItem('d2wins')||'{}');w[FLR]=1;localStorage.setItem('d2wins',JSON.stringify(w))}catch(e){}
  if(FLR==='mines')A('fl_dam')}
 const _int=interact;interact=function(){if(!P.hidden&&!S.safe&&!S.dead){
   // vine doors & sector gates
@@ -217,7 +219,7 @@ const near=(o,d)=>Math.hypot(o.x*T+16-P.x,o.y*T+16-P.y)<d;
 const _pre=window.preUpdateX;window.preUpdateX=function(dt){_pre&&_pre(dt);if(!started||!S||S.dead||S.win||ELEV)return;const r=rooms[P.room];if(!r)return;
  if(FLR==='hotel')return;
  for(const o of r.objs)if(o.cd>0)o.cd-=dt;
- if(FLR==='mines')mines(dt,r);else if(FLR==='back')back(dt,r);else if(FLR==='garden')garden(dt,r);else if(FLR==='archive')archive(dt,r);else if(FLR==='stair')stair(dt,r)};
+ if(FLR==='mines')mines(dt,r);else if(FLR==='back')back(dt,r);else if(FLR==='garden')garden(dt,r);else if(FLR==='archive')archive(dt,r);else if(FLR==='stair')stair(dt,r);else if(window.FLXU&&FLXU[FLR])FLXU[FLR](dt,r)};
 function mines(dt,r){
  for(const o of r.objs)if(o.t==='gas'&&!o.gone&&near(o,42)&&!P.hidden){if(held('lighter')||held('candle')){o.gone=true;damage(45,'gas');S.shake=.8;for(let i=0;i<30;i++)puff(o.x*T+16,o.y*T+16,(Math.random()-.5)*300,(Math.random()-.5)*300,.8,8,'255,160,40',1);msg('ВЗРЫВ ГАЗА!',2)}else{P.hp-=7*dt;if(P.hp<=0)die('gas')}}
  if(r.fx.flood){r.fl=Math.min(1.3,(r.fl||0)+dt/16);if(r.fl>1){P.hp-=10*dt;if(P.hp<=0)die('flood')}}
@@ -317,8 +319,8 @@ window.hudX=(o=>function(){o&&o();if(FLR==='hotel'||!started)return;X.textAlign=
  if(S.turn){X.fillStyle='#000';X.fillRect(W/2-80,H/2+60,160,10);X.fillStyle='#fd4';X.fillRect(W/2-80,H/2+60,160*(1-S.turn.t/1.6),10)}
  if(S.win&&FLR==='hotel'){} X.textAlign='left'})(window.hudX);
 // hotel win → offer mines
-addEventListener('keydown',e=>{if(started&&S&&S.win&&e.code==='KeyN'){const nx={hotel:'mines',back:'hotel',garden:'hotel',archive:'hotel',mines:null,stair:'mines'}[FLR];if(nx){e.stopImmediatePropagation();e.preventDefault();goFloor(nx,(Math.random()*2147483647)|0,false)}}},true);
-const _pr=window.preUpdateX;window.preUpdateX=function(dt){_pr(dt);if(S&&S.win&&!S._fu){S._fu=1;if(FLR==='hotel'){unlock('mines');S.winN='N — спуститься в Копи «Глубокий Шов» (этаж 2)'}else if(!S.winN||FLR!=='mines')S.winN=(S.winN?S.winN+'   ':'')+'N — '+(FLR==='stair'?'вернуться в Копи':'вернуться в Отель')}};
+addEventListener('keydown',e=>{if(started&&S&&S.win&&e.code==='KeyN'){const nx={hotel:'mines',back:'hotel',garden:'hotel',archive:'hotel',mines:'stair',stair:'mines',halls:'hotel'}[FLR];if(nx){e.stopImmediatePropagation();e.preventDefault();goFloor(nx,(Math.random()*2147483647)|0,false)}}},true);
+const _pr=window.preUpdateX;window.preUpdateX=function(dt){_pr(dt);if(S&&S.win&&!S._fu){S._fu=1;if(FLR==='hotel'){unlock('mines');S.winN='N — спуститься в Копи «Глубокий Шов» (этаж 2)'}else S.winN=(S.winN&&FLR!=='mines'?S.winN+'   ':'')+'N — '+(FLR==='stair'?'вернуться в Копи':FLR==='mines'?'спуститься в Лестничный колодец':'вернуться в Отель')}};
 // ---------- music: procedural per-floor ambience (generated live, no samples) ----------
 const MOOD={mines:{root:55,sc:[0,3,7,10],wave:'triangle',bpm:50,col:'brown'},back:{root:73.4,sc:[0,1,6,7],wave:'sine',bpm:90,col:'tick'},garden:{root:65.4,sc:[0,2,7,9],wave:'sine',bpm:40,col:'wind'},archive:{root:61.7,sc:[0,3,5,8],wave:'triangle',bpm:46,col:'paper'},stair:{root:49,sc:[0,1,5,8],wave:'sawtooth',bpm:56,col:'fire'}};
 let mt=0,mi=0;
@@ -340,6 +342,7 @@ const _ss=soloStart;soloStart=function(){setFLR(LOBF);_ss()};
 setInterval(mkSel,1000);
 const _tl=toLobby;toLobby=function(){setFLR('hotel');_tl()};
 // test hooks
+window.__FLX={FL,GEN,R,std,layout,locks,MYI,winFloor,unlock,UNL,saveU,fx,A,MOOD,near,door};
 window.__fl={FL,UNL,unlockAll(){for(const f in FL)UNL[f]=1;saveU();paintSel()},go(f,seed){setFLR(f);if(typeof showLobby==="function")showLobby(false);reset({seed:seed||1234,start:0});started=true;ELEV=null},
  tp(n){const r=rooms[n],p=randomFloor(r);P.x=p.x;P.y=p.y;for(let k=0;k<n;k++){const d=doors[k];if(d){d.open=true;d.locked=false;d.sealed=false;d.vine=false}}enterRoom(r)},
  interact:o=>myInteract(o),win:()=>S.win,state:()=>({FLR,room:P.room,hp:P.hp,dead:S.dead,win:S.win,clock:S.clock,heat:S.heat,cards:S.cards,lant:S.lant,dam:S.dam&&S.dam.ph,nest:S.nest&&S.nest.i})};

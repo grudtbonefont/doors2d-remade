@@ -1,4 +1,4 @@
-const FLS=['hotel','mines','back','garden','archive','stair'];
+const FLS=['hotel','mines','back','garden','archive','stair','halls'];
 'use strict';
 const express=require('express'),http=require('http'),path=require('path'),{WebSocketServer}=require('ws');
 const app=express();

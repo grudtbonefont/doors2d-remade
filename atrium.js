@@ -1,8 +1,10 @@
 // atrium.js — walkable lobby «Атриум отеля «Порог»» (original design)
 (function(){
 const T=32,GW=44,GH=26;let VW=960,VH=540;
-const FLO=[['hotel','Отель','#d9b86a'],['mines','Копи','#c98a4a'],['back','Изнанка','#b8b070'],['garden','Сад','#6ac070'],['archive','Архив','#7aa8e0'],['stair','Колодец','#e07a5a']];
-const ELV=FLO.map((f,i)=>({f:f[0],name:f[1],col:f[2],x:5+i*6,y:1,w:3,h:3}));// cab tiles x..x+2, y 1..3
+const FLO=[['hotel','Отель','#d9b86a'],['mines','Копи','#c98a4a'],['back','Изнанка','#b8b070'],['garden','Сад','#6ac070'],['archive','Архив','#7aa8e0'],['stair','Колодец','#e07a5a'],['halls','Залы','#9ab0c8']];
+const FINFO={hotel:['Отель «Порог»','100 дверей','Свободно'],mines:['Копи «Глубокий Шов»','100 дверей','Пройди Отель'],back:['Изнанка','50 дверей, таймер','Дверь с черепом у входа в Отель'],garden:['Сумеречный сад','40 троп','Дверь с черепом в Оранжерее (дверь 90)'],archive:['Нижний Архив','60 стеллажей','Дверь с черепом в Библиотеке (дверь 50)'],stair:['Лестничный колодец','30 пролётов','Дверь с черепом в лавке Копей'],halls:['Гулкие Залы','120 залов','Пройди 3 любых этажа или 150 жетонов']};
+const HALLC=150;function wins(){try{return Object.keys(JSON.parse(localStorage.getItem('d2wins')||'{}')).length}catch(e){return 0}}
+const ELV=FLO.map((f,i)=>({f:f[0],name:f[1],col:f[2],x:2+i*6,y:1,w:3,h:3}));// cab tiles x..x+2, y 1..3
 const KI=[{id:'shop',name:'Лавка жетонов',sub:'Ключница Агата',x:4,y:13,col:'#e8c46a'},{id:'stats',name:'Доска рекордов',sub:'достижения',x:2,y:8,col:'#9ad'},
  {id:'mods',name:'Терминал модификаторов',sub:'риск = жетоны',x:41,y:9,col:'#c7f'},{id:'stash',name:'Тайник',sub:'ячейка на 1 вещь',x:41,y:15,col:'#8c8'},
  {id:'set',name:'Настройки',sub:'звук, графика, клавиши',x:37,y:22,col:'#ccc'},{id:'skin',name:'Гардероб',sub:'образы и оттенки',x:16,y:5,col:'#e8a0c0'},{id:'cred',name:'Табличка авторов',sub:'звуки CC0',x:6,y:22,col:'#d9b86a'}];
@@ -28,7 +30,7 @@ function build(){solids=[];const W=(x,y,w,h,k)=>solids.push({x:x*T,y:y*T,w:w*T,h
  for(const k of KI)W(k.x,k.y,2,1,'kiosk');
  for(const [a,b] of [[10,8],[30,8],[10,18],[30,18]])W(a,b,3,1,'sofa');
  for(const [a,b] of [[8,5],[35,5],[8,21],[35,21],[16,24],[27,24]])W(a,b,1,1,'plant')}
-function unl(f){try{return !!(__fl.UNL[f])}catch(e){return f==='hotel'}}
+function unl(f){try{if(f==='halls'&&!__fl.UNL.halls&&wins()>=3){__fl.UNL.halls=1;localStorage.setItem('d2floors',JSON.stringify(__fl.UNL))}return !!(__fl.UNL[f])}catch(e){return f==='hotel'}}
 const hit=(x,y,r)=>solids.some(s=>x+r>s.x&&x-r<s.x+s.w&&y+r>s.y&&y-r<s.y+s.h);
 // floor cache
 let FC=null;function floorCache(){FC=document.createElement('canvas');FC.width=GW*T*2;FC.height=GH*T*2;const f=FC.getContext('2d');f.scale(2,2);
@@ -54,7 +56,7 @@ function goSolo(){const f=cab&&cab.f;leaveCab();setFloorSel(f||'hotel');try{au()
 let toast=null;function msg2(t){toast={t,ttl:3}}
 function SNDp(f){try{tone(f,.12,'sine',.06)}catch(e){}}
 // interaction
-function act(){if(!near)return;if(near.kind==='kiosk')openK(near.k.id);else if(near.kind==='lock')msg2('Лифт «'+near.e.name+'» закрыт: '+(near.e.f==='mines'?'пройди Отель':'найди дверь с черепом в Отеле или Копях'))}
+function act(){if(!near)return;if(near.kind==='kiosk')openK(near.k.id);else if(near.kind==='lock'){const f=near.e.f;if(f==='halls'&&window.d2meta&&d2meta.TOK>=HALLC){d2meta.TOK-=HALLC;try{localStorage.setItem('d2tok',JSON.stringify(d2meta.TOK))}catch(e){}__fl.UNL.halls=1;localStorage.setItem('d2floors',JSON.stringify(__fl.UNL));build();floorCache();SNDp(990);msg2('Лифт «Залы» открыт!')}else msg2('Закрыто: '+FINFO[f][2]+(f==='halls'?' (побед: '+wins()+'/3)':''))}}
 function openK(id){const c=q=>{const b=document.querySelector('[data-mt="'+q+'"]');if(b)b.click()};SNDp(880);
  if(id==='shop'||id==='mods'||id==='set')c(id);else if(id==='stats')c('stats');else if(id==='stash'){const t=(document.getElementById('d2tk')||{}).textContent||'';msg2(/Тайнике: ([^·]+)/.test(t)?'В Тайнике: '+RegExp.$1.trim()+' — заберёшь в отеле':'Тайник пуст. Положи вещь в тайник во время забега.')}else if(id==='skin'){window.d2wardrobe&&d2wardrobe()}else if(id==='cred'){showLobby(false);showCredits=true}}
 // input
@@ -118,8 +120,10 @@ function draw(){const c=camera();g.setTransform(SC,0,0,SC,0,0);g.fillStyle='#000
  // players
  let i=0;for(const [id,o] of others){i++;char(o.x,o.y,o.f||0,o.ph,'',o.n||'?',false,o.sk||'bell:0',o.mv);if(o.bub)bubble(o.x,o.y,o.bub.t)}
  char(me.x,me.y,me.face,me.ph,'',NAME||'Ты',true,window.d2skinCode?d2skinCode():'',me.mv);if(bub)bubble(me.x,me.y,bub.t);
+ // elevator info plaque
+ for(const e of ELV){if(Math.abs((e.x+1.5)*T-me.x)<70&&me.y<7*T){const fi=FINFO[e.f],u=unl(e.f),x=(e.x+1.5)*T,y=4*T+40;g.fillStyle='rgba(10,8,6,.88)';g.fillRect(x-110,y,220,58);g.strokeStyle=e.col;g.strokeRect(x-110,y,220,58);g.textAlign='center';g.fillStyle=e.col;g.font='bold 13px Georgia';g.fillText(fi[0],x,y+16);g.fillStyle='#ccc';g.font='11px Arial';g.fillText(fi[1],x,y+32);g.fillStyle=u?'#7f7':'#f99';g.fillText(u?'Открыто — зайди в лифт':'🔒 '+fi[2],x,y+48)}}
  // hint
- if(near){g.font='bold 14px Arial';g.textAlign='center';g.fillStyle='#fff';g.fillText(near.kind==='kiosk'?'[E] '+near.k.name:'🔒 Закрыто',me.x,me.y+34)}
+ if(near){g.font='bold 14px Arial';g.textAlign='center';g.fillStyle='#fff';g.fillText(near.kind==='kiosk'?'[E] '+near.k.name:(near.e.f==='halls'?'[E] Открыть за '+HALLC+' жетонов':'🔒 Закрыто'),me.x,me.y+34)}
  g.setTransform(SC,0,0,SC,0,0);
  // HUD
  g.fillStyle='rgba(0,0,0,.55)';g.fillRect(10,10,330,46);g.fillStyle='#d9b86a';g.font='bold 18px Georgia';g.textAlign='left';g.fillText('Атриум отеля «Порог»',18,32);g.fillStyle='#aaa';g.font='12px Arial';g.fillText((NET.ok?'Онлайн: '+NET.lobby.players.length:'Офлайн')+' • WASD/тап — идти • E — действие • 1–5 — эмоции',18,49);
