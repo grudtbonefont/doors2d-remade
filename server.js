@@ -1,3 +1,4 @@
+const FLS=['hotel','mines','back','garden','archive','stair'];
 'use strict';
 const express=require('express'),http=require('http'),path=require('path'),{WebSocketServer}=require('ws');
 const app=express();
@@ -16,10 +17,10 @@ wss.on('connection',ws=>{const p={id:nid++,ws,name:null,party:null,alive:true,ra
   if(m.t==='hello'){p.name=String(m.name||'Игрок').replace(/[<>&"]/g,'').trim().slice(0,16)||'Игрок';lobby();return}
   if(!p.name)return;const q=PA.get(p.party);
   switch(m.t){
-   case 'create':{leave(p);const id=pid++;PA.set(id,{id,host:p.id,members:[p.id],floor:'hotel',start:[0,50,90].includes(m.start)?m.start:0,state:'wait'});p.party=id;lobby();break}
+   case 'create':{leave(p);const id=pid++;PA.set(id,{id,host:p.id,members:[p.id],floor:FLS.includes(m.floor)?m.floor:'hotel',start:[0,50,90].includes(m.start)?m.start:0,state:'wait'});p.party=id;lobby();break}
    case 'join':{const r=PA.get(m.party);if(!r||r.state!=='wait'||r.members.length>=4||r.id===p.party){send(ws,{t:'err',msg:'Нельзя войти в этот лифт'});break}leave(p);r.members.push(p.id);p.party=r.id;lobby();break}
    case 'leave':leave(p);lobby();break;
-   case 'cfg':if(q&&q.host===p.id&&q.state==='wait'&&[0,50,90].includes(m.start)){q.start=m.start;lobby()}break;
+   case 'cfg':if(q&&q.host===p.id&&q.state==='wait'){if([0,50,90].includes(m.start))q.start=m.start;if(FLS.includes(m.floor))q.floor=m.floor;lobby()}break;
    case 'start':if(q&&q.host===p.id&&q.state==='wait'){q.state='play';q.seed=(Math.random()*2147483647)|0;const members=q.members.map(i=>({id:i,name:PL.get(i).name}));for(const i of q.members)send(PL.get(i).ws,{t:'go',seed:q.seed,start:q.start,floor:q.floor,members});lobby()}break;
    case 'st':case 'ev':if(q){m.id=p.id;const s=JSON.stringify(m);if(s.length>600)break;for(const i of q.members)if(i!==p.id){const o=PL.get(i);if(o&&o.ws.readyState===1)o.ws.send(s)}}break;
   }});

@@ -40,9 +40,9 @@ const SND={...SY,door:()=>{if(play('door_open',.8,rnd(.9,1.1))){if(Math.random()
  hideIn:P_('wardrobe_in',.8,SY.door),hideOut:P_('wardrobe_out',.8,SY.door),halt:()=>{if(!play('halt_static',.5))SY.halt()},holy:SY.holy};
 let thunderT=20;
 function audioTick(dt){if(!AC)return;const room=rooms[P.room]||{};let m=null;
- if(ELEV){m='elevator'}else if(!started){m=NET.party?'elevator':showCredits?null:'lobby'}else if(!S.dead&&!S.win){m=S.seek?'seek_chase':room.t==='library'?'music_library':room.t==='electric'?'music_door100':room.t==='shop'?'music_shop':'music_hotel'}
+ if(ELEV){m='elevator'}else if(!started){m=NET.party?'elevator':showCredits?null:'lobby'}else if(!S.dead&&!S.win){m=S.seek?'seek_chase':room.t==='library'?'music_library':room.t==='electric'?'music_door100':room.t==='shop'?'music_shop':(window.FMUS?FMUS(room):'music_hotel')}
  setLoop('music',m,m==='elevator'||m==='lobby'?.45:m==='seek_chase'?.6:m==='music_shop'?.35:.3,2);
- setLoop('amb',started&&!S.dead?'rain':null,room.dark?.1:.2,2);
+ setLoop('amb',started&&!S.dead?(window.FAMB?FAMB():'rain'):null,room.dark?.1:.2,2);
  setLoop('ent',S.halt&&room.t==='halt'&&S.halt.phase!=='idle'&&S.halt.phase!=='banished'?'halt_static':S.eyes&&S.eyes.room===P.room?'eyes_hum':null,S.halt&&room.t==='halt'?(S.halt.phase==='chase'?.35:.15):.4,.6);
  const f=S.figure;if(f&&f.room===P.room&&!S.dead){f.stepT=(f.stepT||0)-dt;if(f.stepT<=0){f.stepT=f.alert?.4:.8;const v=Math.max(0,1-dist(f,P)/600);if(v>0)play('figure_step',v*.9,rnd(.85,1))}}}
 // ---------- DATA ----------
@@ -151,6 +151,7 @@ function reset(o){o=o||{};SEED=o.seed!=null?o.seed:(Math.random()*2147483647|0);
  msg('Ресепшен. Ключ от двери 001 лежит на стойке.',5);applyStart()}
 function applyStart(){if(!START)return;const n=START===50?49:89;for(let k=0;k<n;k++){const d=doors[k];if(d){d.open=true;d.locked=false;d.code=false}rooms[k].visited=true}
  const r=rooms[n],p=randomFloor(r);P.x=p.x;P.y=p.y;P.gold=START===50?40:90;P.inv[1]='lighter';if(START===90)P.inv[2]='crucifix';enterRoom(r);P.best=n;msg('Старт с двери '+pad(n),3)}
+const DP=n=>window.FDP?FDP(n):pad(n);
 function msg(t,d=3){S.msg=t;S.msgT=d}
 function damage(a,c){if(S.dead||S.win||P.iv>0)return;P.hp-=a;P.hurtT=.3;S.shake=.3;SND.hurt();if(P.hp<=0)die(c)}
 function die(c){if(P.iv>0)return;if(!S.dead){P.hp=0;S.dead=c;S.deathT=0;P.hidden=null;SND.hurt();SND.death();S.shake=.8;netEv({k:'dead',c})}}
@@ -222,7 +223,7 @@ function interact(){
 }
 // ---------- ENTITIES ----------
 const rc=r=>({x:(r.x0+r.w/2)*T,y:(r.y0+r.h/2)*T}),dc=d=>({x:d.x*T+16,y:d.y*T+16});
-function startRush(amb,n0,remote){const n=n0??P.room;if(!remote)netEv({k:'rush',amb,room:n});const pts=[rc(rooms[Math.max(0,n-3)])];for(let k=Math.max(1,n-2);k<=Math.min(100,n+2);k++){pts.push(dc(doors[k-1]));pts.push(rc(rooms[k]))}
+function startRush(amb,n0,remote){const n=n0??P.room;if(!remote)netEv({k:'rush',amb,room:n});const pts=[rc(rooms[Math.max(0,n-3)])];for(let k=Math.max(1,n-2);k<=Math.min(rooms.length-1,n+2);k++){pts.push(dc(doors[k-1]));pts.push(rc(rooms[k]))}
  let tot=0;const cum=[0];for(let i=1;i<pts.length;i++){tot+=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);cum.push(tot)}
  S.ents.push({type:amb?'ambush':'rush',pts,cum,tot,s:0,x:pts[0].x,y:pts[0].y,dir:1,state:'wait',t:amb?4.6:3.3,t0:amb?4.6:3.3,wt:0,reb:amb?ri(2,4):0,sp:amb?950:750,pause:0});
  if(amb){S.flick=4.6;msg('Свет мигает зелёным... прячься!',2.5)}else S.flick=3.3}
@@ -232,7 +233,7 @@ function enterRoom(r){P.room=r.n;P.roomT=0;if(r.n>P.best)P.best=r.n;if(S.eyes&&S
  if(S.seek&&(r.n===42||r.n===89)){S.seek=null;S.pendingSlam=doors[r.n-1];msg('Ты оторвался от Ищейки!',3)}
  if(r.t==='halt'&&!S.halt){S.halt={phase:'idle',x:0,side:1,t:0,cd:0};if(!r.visited)msg('Холодный синий коридор...',2)}
  if(r.visited)return;r.visited=true;
- if(r.n>0)msg('Дверь '+pad(r.n)+(r.dark?' — темно...':''),2);
+ if(r.n>0)msg((window.FDW||'Дверь ')+DP(r.n)+(r.dark?' — темно...':''),2);
  if(r.t==='chase'&&(r.n===36||r.n===83)){S.ents=[];S.seek={x:P.x-240,y:P.y,wait:1.2};S.trail=[];SND.seek();msg('СЕК! БЕГИ! (Shift)',3)}
  if(r.eyesWall&&(r.n===33||r.n===80))msg('Со стен на тебя смотрят глаза...',3);
  
@@ -323,7 +324,7 @@ const FLOOR={normal:['#4a3424','#45311f'],reception:['#5a4028','#523a24'],librar
 function hash(a,b){return ((a*73856093)^(b*19349663))>>>0}
 function drawDoor(px,py,num,state){X.fillStyle='#3a2010';X.fillRect(px,py,T,T);if(state==='open'){X.fillStyle='#120a05';X.fillRect(px+4,py,T-8,T);X.fillStyle='#6b4020';X.fillRect(px+T-6,py-8,6,T+8)}
  else{X.fillStyle='#7a4a24';X.fillRect(px+3,py+1,T-6,T-2);X.fillStyle='#5a3418';X.fillRect(px+6,py+4,T-12,10);X.fillRect(px+6,py+17,T-12,10);X.fillStyle='#fc6';X.fillRect(px+T-9,py+15,3,3)}
- if(num!==null){X.fillStyle='#d9b86a';X.fillRect(px+4,py-14,T-8,12);X.fillStyle='#2a1a08';X.font='bold 10px Arial';X.textAlign='center';X.fillText(pad(num),px+16,py-4)}
+ if(num!==null){X.fillStyle='#d9b86a';X.fillRect(px+4,py-14,T-8,12);X.fillStyle='#2a1a08';X.font='bold 10px Arial';X.textAlign='center';X.fillText(DP(num),px+16,py-4)}
  if(state==='locked'){X.fillStyle='#ccc';X.fillRect(px+10,py+12,12,10);X.strokeStyle='#ccc';X.lineWidth=2;X.beginPath();X.arc(px+16,py+12,4,Math.PI,0);X.stroke()}
  if(state==='code'){X.fillStyle='#888';X.fillRect(px+7,py+10,18,13);X.fillStyle='#0f0';X.font='8px monospace';X.fillText('*****',px+16,py+19)}}
 function drawObj(o,px,py,t){switch(o.t){
@@ -342,7 +343,7 @@ function drawObj(o,px,py,t){switch(o.t){
  case 'breaker':X.fillStyle='#777';X.fillRect(px+2,py,28,32);X.fillStyle='#222';X.fillRect(px+6,py+4,20,24);X.fillStyle=S.fuses>=10?'#0f0':'#f00';X.fillRect(px+12,py+8,8,6);X.fillStyle='#aaa';X.fillRect(px+14,py+16,4,10);break;
  case 'fuse':X.fillStyle='#fd4';X.fillRect(px+10,py+12,12,8);X.fillStyle='#aaa';X.fillRect(px+7,py+13,3,6);X.fillRect(px+22,py+13,3,6);break;
  case 'fake':drawDoor(px,py,o.num,'closed');{const dd=Math.hypot(P.x-px-16,P.y-py-16);if(dd<90)ED.dupeMouth(px,py,S.t,(90-dd)/50)}break;
- case 'clue':X.fillStyle='#eee8d0';X.fillRect(px+6,py+8,20,16);X.fillStyle='#222';X.font='bold 9px Arial';X.textAlign='center';X.fillText(pad(o.num),px+16,py+20);X.fillStyle='#d9b86a';X.font='10px Arial';X.fillText('Следующая дверь',px+16,py+4);break}}
+ case 'clue':X.fillStyle='#eee8d0';X.fillRect(px+6,py+8,20,16);X.fillStyle='#222';X.font='bold 9px Arial';X.textAlign='center';X.fillText(DP(o.num),px+16,py+20);X.fillStyle='#d9b86a';X.font='10px Arial';X.fillText('Следующая дверь',px+16,py+4);break}}
 function light(x,y,r,s,col){const g=LX.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(0,0,0,'+s+')');g.addColorStop(1,'rgba(0,0,0,0)');LX.fillStyle=g;LX.beginPath();LX.arc(x,y,r,0,7);LX.fill()}
 // ===== Entity sprites (procedural, inspired versions) =====
 const ED={
@@ -432,11 +433,11 @@ function render(){
  drawHUD()}
 function box(x,y,w,h){X.fillStyle='rgba(0,0,0,.7)';X.fillRect(x,y,w,h);X.strokeStyle='#8a6a3a';X.lineWidth=2;X.strokeRect(x,y,w,h)}
 function drawHUD(){const room=rooms[P.room];X.textAlign='left';btns=[];
- box(10,10,240,92);X.fillStyle='#d9b86a';X.font='bold 20px Arial';X.fillText('Дверь '+pad(P.room),20,35);
+ box(10,10,240,92);X.fillStyle='#d9b86a';X.font='bold 20px Arial';X.fillText((window.FDW||'Дверь ')+DP(P.room),20,35);
  X.fillStyle='#400';X.fillRect(20,44,200,12);X.fillStyle=P.hp>30?'#c33':'#f00';X.fillRect(20,44,200*P.hp/100,12);X.fillStyle='#fff';X.font='11px Arial';X.fillText('HP '+Math.ceil(P.hp),24,54);
  X.fillStyle='#fd4';X.font='14px Arial';X.fillText('Золото: '+P.gold,20,75);X.fillStyle='#bfb';X.fillText('Батарея: '+Math.ceil(P.bat)+'%'+(P.light?' (вкл)':''),120,75);
  X.fillStyle='#223';X.fillRect(20,58,200,4);X.fillStyle=P.tired?'#a55':'#6cf';X.fillRect(20,58,2*P.st,4);
- X.fillStyle='#aaa';X.font='11px Arial';X.fillText(room.t==='library'?'Код: '+[0,1,2,3,4].map(i=>S.books[i]||'_').join(' '):room.t==='electric'?'Предохранители: '+S.fuses+'/10':'Рекорд: '+pad(P.best),20,94);
+ X.fillStyle='#aaa';X.font='11px Arial';X.fillText(room.t==='library'?'Код: '+[0,1,2,3,4].map(i=>S.books[i]||'_').join(' '):room.t==='electric'?'Предохранители: '+S.fuses+'/10':'Рекорд: '+DP(P.best),20,94);
  for(let i=0;i<10;i++){const x=W/2-250+i*50,y=H-58;box(x,y,46,50);if(i===P.sel){X.strokeStyle='#ffd86a';X.lineWidth=3;X.strokeRect(x,y,46,50)}X.fillStyle='#888';X.font='10px Arial';X.fillText((i+1)%10,x+4,y+12);
   const it=P.inv[i];if(it){drawIcon(X,it,x+23,y+22,28);if(i===P.sel){X.fillStyle='#ddd';X.font='11px Arial';X.textAlign='center';X.fillText(ITEM[it].n+(it==='lighter'?' '+Math.ceil(P.fuel)+'%':''),x+23,y-6);X.textAlign='left'}}}
  X.textAlign='center';
@@ -462,7 +463,7 @@ function drawHUD(){const room=rooms[P.room];X.textAlign='left';btns=[];
  if(!started){X.fillStyle='rgba(0,0,0,.82)';X.fillRect(0,0,W,H);X.fillStyle='#d9b86a';X.font='bold 56px Georgia';X.fillText('DOORS 2D',W/2,150);X.font='18px Arial';X.fillStyle='#ccc';X.fillText('Фан-ремейк: Отель, двери 0–100',W/2,185);
   ['WASD/стрелки — движение, Shift — бег вкл/выкл (шумно!)','E — взаимодействие / спрятаться, F — фонарик','1–0 / колесо — 10 слотов, G — бросить, E — подобрать, C — присесть/встать','Мышь — направление взгляда. На телефоне: джойстик слева, кнопки справа','M — звук вкл/выкл, −/+ — громкость, K — авторы звуков и музыки','Нажми любую клавишу, чтобы начать'].forEach((s,i)=>X.fillText(s,W/2,250+i*30))}
  if(S.dead)drawDeath();
- if(S.win){X.fillStyle='rgba(20,20,0,.85)';X.fillRect(0,0,W,H);X.fillStyle='#fd4';X.font='bold 48px Georgia';X.fillText('ПОБЕДА!',W/2,200);X.fillStyle='#fff';X.font='20px Arial';X.fillText('Свет включён, Слухач повержен — ты сбежал из отеля!',W/2,260);X.fillText('Золото: '+P.gold,W/2,300);X.fillText('R / Enter — сыграть снова',W/2,380)}}
+ if(S.win){X.fillStyle='rgba(20,20,0,.85)';X.fillRect(0,0,W,H);X.fillStyle='#fd4';X.font='bold 48px Georgia';X.fillText('ПОБЕДА!',W/2,200);X.fillStyle='#fff';X.font='20px Arial';X.fillText(S.winT||'Свет включён, Слухач повержен — ты сбежал из отеля!',W/2,260);if(S.winN){X.fillStyle='#9cf';X.fillText(S.winN,W/2,340);X.fillStyle='#fff'}X.fillText('Золото: '+P.gold,W/2,300);X.fillText('R / Enter — сыграть снова',W/2,380)}}
 function wrap(s,x,y,mw,lh){const w=s.split(' ');let l='';for(const p of w){if(X.measureText(l+p).width>mw){X.fillText(l,x,y);y+=lh;l=''}l+=p+' '}X.fillText(l,x,y)}
 // ===== DEATH / REVIVE =====
 const DNAME={rush:'Рой',ambush:'Звонарь',screech:'Шорох',eyes:'Люстра',halt:'Отлив',seek:'Ищейка',figure:'Слухач',dupe:'Двойник',snare:'Терновник',hide:'Теснота',fire:'Огонь'};
@@ -480,7 +481,7 @@ function drawDeath(){const k=S.deathT||0;DBTN=[];
  if(k<2.2){drawJump(S.dead,1.4);X.fillStyle='rgba(0,0,0,'+Math.min(1,(k-1.4)/.8)+')';X.fillRect(0,0,W,H);return}
  const a=Math.min(1,(k-2.2)/.6);X.globalAlpha=a;X.fillStyle='#050208';X.fillRect(0,0,W,H);vignette(.6,'90,0,0');X.textAlign='center';
  X.fillStyle='#c22';X.font='bold 52px Georgia';X.shadowColor='#f00';X.shadowBlur=18;X.fillText('ТЫ ПОГИБ',W/2,110);X.shadowBlur=0;
- X.font='20px Arial';X.fillStyle='#ddd';X.fillText('Причина: '+(DNAME[S.dead]||'неизвестно')+'   •   Дверь '+pad(P.best)+'   •   Золото: '+P.gold,W/2,150);
+ X.font='20px Arial';X.fillStyle='#ddd';X.fillText('Причина: '+(DNAME[S.dead]||'неизвестно')+'   •   Дверь '+DP(P.best)+'   •   Золото: '+P.gold,W/2,150);
  const bx=W/2-360,by=180;const g=X.createLinearGradient(0,by,0,by+170);g.addColorStop(0,'rgba(40,80,160,.35)');g.addColorStop(1,'rgba(10,20,60,.55)');X.fillStyle=g;X.fillRect(bx,by,720,170);X.strokeStyle='rgba(140,200,255,.6)';X.lineWidth=2;X.strokeRect(bx,by,720,170);
  X.fillStyle='#bfe3ff';X.shadowColor='#6af';X.shadowBlur=14;X.font='italic 22px Georgia';X.fillText('✦ Лунный свет шепчет ✦',W/2,by+34);X.shadowBlur=0;X.fillStyle='#e6f2ff';X.font='italic 18px Georgia';wrap(HINTS[S.dead]||'Будь осторожнее...',W/2,by+72,660,26);
  const btn=(x,y,w,h,label,act,col)=>{X.fillStyle=col;X.fillRect(x,y,w,h);X.strokeStyle='#fff';X.strokeRect(x,y,w,h);X.fillStyle='#fff';X.font='bold 20px Arial';X.fillText(label,x+w/2,y+h/2+7);DBTN.push({x,y,w,h,act})};
@@ -499,7 +500,7 @@ function netConnect(){const u=wsUrl();if(!u){lobStatus('Офлайн: досту
   if(m.t==='welcome')NET.id=m.id;
   else if(m.t==='lobby'){NET.lobby=m;const me=m.players.find(p=>p.id===NET.id);NET.party=me?me.party:null;renderLobby()}
   else if(m.t==='err')lobStatus(m.msg);
-  else if(m.t==='go'){NET.coop=true;startElev(m.members.map(p=>p.name),m.start,6);NET.members=m.members;NET.others=new Map();for(const p of m.members)if(p.id!==NET.id)NET.others.set(p.id,{name:p.name,x:0,y:0,tx:0,ty:0,room:0,dead:false,seen:false});reset({seed:m.seed,start:m.start});started=true;showLobby(false)}
+  else if(m.t==='go'){NET.coop=true;startElev(m.members.map(p=>p.name),m.start,6);NET.members=m.members;NET.others=new Map();for(const p of m.members)if(p.id!==NET.id)NET.others.set(p.id,{name:p.name,x:0,y:0,tx:0,ty:0,room:0,dead:false,seen:false});if(window.setFLR)setFLR(m.floor||'hotel');reset({seed:m.seed,start:m.start});started=true;showLobby(false)}
   else if(m.t==='st'&&NET.coop){const o=NET.others.get(m.id);if(o){if(!o.seen){o.x=m.x;o.y=m.y;o.seen=true}o.tx=m.x;o.ty=m.y;o.room=m.room;o.face=m.f;o.dead=m.d;o.hid=m.h;o.hp=m.hp}}
   else if(m.t==='left'){const o=NET.others.get(m.id);if(o){o.gone=true;if(started)msg(o.name+' покинул игру',3)}}
   else if(m.t==='ev'&&NET.coop&&started)onNetEv(m)}}
@@ -512,7 +513,7 @@ function netTick(dt){if(!NET.coop||!started)return;NET.sendT-=dt;if(NET.sendT<=0
 const PCOL=['#7cf','#fc7','#c7f','#7f9'];
 function drawOthers(){if(!NET.coop)return;let i=0;for(const[id,o]of NET.others){i++;if(o.gone||!o.seen||o.hid)continue;X.save();X.translate(o.x,o.y);X.globalAlpha=o.dead?.45:1;X.fillStyle=o.dead?'#666':PCOL[i%4];X.beginPath();X.arc(0,0,11,0,7);X.fill();X.strokeStyle='#000';X.lineWidth=2;X.beginPath();X.moveTo(0,0);X.lineTo(Math.cos(o.face||0)*12,Math.sin(o.face||0)*12);X.stroke();
  X.fillStyle='#fff';X.font='bold 12px Arial';X.textAlign='center';X.fillText((o.dead?'☠ ':'')+o.name,0,-17);X.restore()}X.globalAlpha=1}
-function drawPartyHud(){if(!NET.coop||!started||S.dead)return;let y=112;X.textAlign='left';X.font='12px Arial';let i=0;for(const o of NET.others.values()){i++;X.fillStyle='rgba(0,0,0,.55)';X.fillRect(10,y,240,20);X.fillStyle=o.gone?'#777':o.dead?'#c55':PCOL[i%4];X.fillText((o.gone?'(вышел) ':o.dead?'☠ ':'')+o.name+'  — дверь '+pad(o.room||0)+(o.dead?'':'  HP '+(o.hp??100)),16,y+14);y+=22}}
+function drawPartyHud(){if(!NET.coop||!started||S.dead)return;let y=112;X.textAlign='left';X.font='12px Arial';let i=0;for(const o of NET.others.values()){i++;X.fillStyle='rgba(0,0,0,.55)';X.fillRect(10,y,240,20);X.fillStyle=o.gone?'#777':o.dead?'#c55':PCOL[i%4];X.fillText((o.gone?'(вышел) ':o.dead?'☠ ':'')+o.name+'  — дверь '+DP(o.room||0)+(o.dead?'':'  HP '+(o.hp??100)),16,y+14);y+=22}}
 
 let ELEV=null;
 function startElev(names,start,dur){const g=names.length>1?3:1.2;ELEV={t:0,g:g,dur:g+3.9,names:names.slice(0,4),start:start||0}}
@@ -550,7 +551,7 @@ function renderLobby(){const L=NET.lobby,pl=document.getElementById('lpl'),pa=do
  pl.innerHTML=NET.ok?L.players.filter(p=>p.name).map(p=>'<li>'+esc(p.name)+(p.id===NET.id?' (ты)':'')+(p.party?' <i>в лифте #'+p.party+'</i>':'')+'</li>').join('')||'<li>никого</li>':'<li>нет связи с сервером</li>';
  const my=L.parties.find(q=>q.id===NET.party);const nm=id=>{const p=L.players.find(p=>p.id===id);return p?esc(p.name):'?'};
  pa.innerHTML=L.parties.filter(q=>q.id!==NET.party).map(q=>'<li>Лифт #'+q.id+' • '+q.members.map(nm).join(', ')+' • '+q.members.length+'/4 • старт '+q.start+(q.state==='wait'&&q.members.length<4?' <button data-j="'+q.id+'">Войти</button>':' <i>'+(q.state==='wait'?'полон':'в игре')+'</i>')+'</li>').join('')||'<li>пока нет лифтов</li>';
- if(my){const host=my.host===NET.id;me.innerHTML='<b>Твой лифт #'+my.id+'</b> ('+my.members.length+'/4): '+my.members.map(id=>nm(id)+(id===my.host?' ★':'')).join(', ')+'<br>Этаж: Отель • старт с двери '+my.start+'<br>'+(host?'<button id="lgo" class="big">Поехали!</button> ':'<i>Ждём, пока хост нажмёт «Поехали»...</i> ')+'<button id="llv">Выйти из лифта</button>'}else me.innerHTML='';
+ if(my){const host=my.host===NET.id;me.innerHTML='<b>Твой лифт #'+my.id+'</b> ('+my.members.length+'/4): '+my.members.map(id=>nm(id)+(id===my.host?' ★':'')).join(', ')+'<br>Этаж: '+(window.FNAME?FNAME(my.floor):'Отель')+' • старт с двери '+my.start+'<br>'+(host?'<button id="lgo" class="big">Поехали!</button> ':'<i>Ждём, пока хост нажмёт «Поехали»...</i> ')+'<button id="llv">Выйти из лифта</button>'}else me.innerHTML='';
  pa.querySelectorAll('button[data-j]').forEach(b=>b.onclick=()=>{saveName();netSend({t:'join',party:+b.dataset.j})});
  const g=document.getElementById('lgo');if(g)g.onclick=()=>netSend({t:'start'});const lv=document.getElementById('llv');if(lv)lv.onclick=()=>netSend({t:'leave'});
  document.getElementById('lcr').disabled=!NET.ok;document.querySelectorAll('[data-s]').forEach(b=>b.classList.toggle('on',+b.dataset.s===LOBSTART))}
@@ -578,4 +579,4 @@ function drawCredits(){if(!showCredits)return;X.fillStyle='#000';X.fillRect(0,0,
 function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(ELEV){ELEV.t+=dt;audioTick(dt);netTick(dt);if(ELEV.t>=ELEV.dur){ELEV=null;S.shake=.3}}else update(dt);render();if(ELEV)drawElev();X.globalAlpha=1;if(!ELEV)drawPartyHud();drawCredits();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 window.__pass=passable;window.__doors={get P(){return P},get S(){return S},get rooms(){return rooms},get doors(){return doors},get frames(){return frames},enterRoom,update,render,innerOf,bfs,handleKey,get allDoors(){return allDoors},get TM(){return TM},startRush,reset,revive,NET,get SEED(){return SEED},get START(){return START},mkFigure,useCrucifix,get DBTN(){return DBTN},soloStart,get ELEV(){return ELEV},skipElev(){ELEV=null},get libCode(){return libCode},setStarted(){showLobby(false);started=true}};
-</script><script src="gfx.js"></script><script src="mech.js"></script></body></html>
+</script><script src="gfx.js"></script><script src="mech.js"></script><script src="floors.js"></script></body></html>

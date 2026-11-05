@@ -100,7 +100,7 @@ const _cru=useCrucifix;useCrucifix=function(n,x,y,v){_cru(n,x,y,v);ach('faith')}
 const ACHL={first:['Первый шаг','Открой дверь 001'],d25:['Постоялец','Дойди до двери 025'],d50:['Книжный червь','Дойди до библиотеки (050)'],d75:['Старожил','Дойди до двери 075'],win:['Свет в конце','Восстанови электричество (100)'],
  faith:['Вера','Изгони сущность распятием'],second:['Второй шанс','Возродись'],safe:['Медвежатник','Взломай сейф'],rift:['Тайник','Оставь предмет на следующий забег'],shopper:['Подготовка','Купи снаряжение за жетоны'],brave:['Смельчак','Начни забег с модификатором'],
  scholar:['Знаток','Погибни от 5 разных угроз'],regular:['Завсегдатай','Сыграй 10 забегов'],medic:['Санитар','Используй 3 бинта за забег'],nolight:['Во тьме','Дойди до 030 не включая фонарик'],rich:['Толстый кошелёк','Собери 300 золота']};
-let TOASTS=[];function ach(k){if(ACH[k]||!ACHL[k])return;ACH[k]=Date.now();TOK+=10;saveAll();TOASTS.push({k,t:4.5});try{SND.holy()}catch(e){}}
+let TOASTS=[];function ach(k){if(ACH[k]||!ACHL[k])return;ACH[k]=Date.now();TOK+=10;saveAll();TOASTS.push({k,t:4.5});try{SND.holy()}catch(e){}}window.d2ach=ach;window.d2ACHL=ACHL;
 // ---- per-frame hooks ----
 let prevX=0,prevY=0,vx=0,vy=0,usedLight=false;
 window.preUpdateX=function(dt){if(!started){S._pre=false;return}if(!S._pre)startRun();
@@ -112,8 +112,8 @@ window.preUpdateX=function(dt){if(!started){S._pre=false;return}if(!S._pre)start
   if(MODS.slip){const nx=P.x+vx*.55,ny=P.y+vy*.55;if(passableAt(nx,P.y))P.x=nx;if(passableAt(P.x,ny))P.y=ny;vx=(P.x-prevX)*.6;vy=(P.y-prevY)*.6}}
  prevX=P.x;prevY=P.y;
  if(RUN.berry>0)RUN.berry-=dt;
- const b=P.best;if(b>=1)ach('first');if(b>=25)ach('d25');if(b>=50)ach('d50');if(b>=75)ach('d75');if(b>=30&&!usedLight)ach('nolight');if(P.gold>=300)ach('rich');if(RUN.heal>=3)ach('medic');
- if(S.win){ach('win');endRun(true)}if(S.dead&&(P.revived||MODS.norev)&&!REVS)endRun(false);
+ const b=window.FLR&&FLR!=='hotel'?0:P.best;if(b>=1)ach('first');if(b>=25)ach('d25');if(b>=50)ach('d50');if(b>=75)ach('d75');if(b>=30&&!usedLight)ach('nolight');if(P.gold>=300)ach('rich');if(RUN.heal>=3)ach('medic');
+ if(S.win){if(!window.FLR||FLR==='hotel')ach('win');endRun(true)}if(S.dead&&(P.revived||MODS.norev)&&!REVS)endRun(false);
  if(S.safe)stepSafe(dt)};
 function passableAt(x,y){const r=9;for(const [a,b] of [[-r,-r],[r,-r],[-r,r],[r,r]])if(!passable(Math.floor((x+a)/T),Math.floor((y+b)/T)))return false;return true}
 const _reset=reset;reset=function(o){try{if(S&&S._pre&&!S._paid&&P&&P.best>0)endRun(!!S.win)}catch(e){}return _reset(o)};
@@ -124,7 +124,7 @@ addEventListener('keydown',e=>{if(!started)return;if(S.safe){if(e.code==='KeyE'|
 addEventListener('pointerdown',e=>{if(S&&S.safe){safeHit();e.stopImmediatePropagation()}},true);
 window.hudX=function(){const t=S.t;
  // prompt for new objects
- if(!S.dead&&!P.hidden&&S.codeInput===null&&!S.shop&&!S.safe){const o=nearObj();if(o&&NEWI[o.t]){const h={medcab:'[E] Открыть аптечку',bush:'[E] Сорвать ягоды',safe:'[E] Взломать сейф',stash:STASH?'[E] Забрать из Тайника':'[E] Положить в Тайник'}[o.t];X.textAlign='center';X.font='600 16px '+FU;X.fillStyle='#fff';X.fillText(h,W/2,H-80)}}
+ if(!S.dead&&!P.hidden&&S.codeInput===null&&!S.shop&&!S.safe){const o=nearObj();if(o&&NEWI[o.t]){const h={medcab:'[E] Открыть аптечку',bush:'[E] Сорвать ягоды',safe:'[E] Взломать сейф',stash:STASH?'[E] Забрать из Тайника':'[E] Положить в Тайник'}[o.t]||(window.FHINT?FHINT(o):'');X.textAlign='center';X.font='600 16px '+FU;X.fillStyle='#fff';X.fillText(h,W/2,H-80)}}
  // chips: tokens, mods, revive stock
  X.textAlign='right';X.font='600 13px '+FU;let y=26;const chip=(s,c)=>{const w=X.measureText(s).width+18;box(W-w-10,y-16,w,24);X.fillStyle=c;X.fillText(s,W-19,y);y+=30};
  chip('Жетоны: '+TOK,'#e8c46a');if(modBonus())chip('Модификаторы +'+modBonus()+'%','#f88');if(REVS)chip('Возрождения: '+REVS,'#c8a0ff');if(P.inv.includes('skey'))chip('Ключ-отмычка: '+(P.skey||3),'#e8c46a');

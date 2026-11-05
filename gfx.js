@@ -71,7 +71,7 @@ drawDoor=function(px,py,num,state){const g=X;
   g.strokeStyle='rgba(0,0,0,.45)';g.lineWidth=1;g.strokeRect(px+6.5,py+6.5,T-13,9);g.strokeRect(px+6.5,py+18.5,T-13,10);g.strokeStyle='rgba(255,220,160,.18)';g.strokeRect(px+7.5,py+7.5,T-15,7);
   g.fillStyle='#e8c46a';g.beginPath();g.arc(px+T-8,py+17,2.2,0,7);g.fill();g.fillStyle='rgba(255,255,220,.8)';g.fillRect(px+T-9,py+16,1,1)}
  if(num!==null){g.fillStyle='#1a1208';rr(g,px+3,py-15,T-6,13,3);g.fill();const q=g.createLinearGradient(0,py-14,0,py-3);q.addColorStop(0,'#f0d48a');q.addColorStop(1,'#a07a32');g.fillStyle=q;rr(g,px+4,py-14,T-8,11,2.5);g.fill();
-  g.fillStyle='#2a1a08';g.font='700 10px '+FU;g.textAlign='center';g.fillText(pad(num),px+16,py-5.5)}
+  g.fillStyle='#2a1a08';g.font='700 10px '+FU;g.textAlign='center';g.fillText(DP(num),px+16,py-5.5)}
  if(state==='locked'){g.fillStyle='#bfc3c8';rr(g,px+10,py+13,12,10,2);g.fill();g.strokeStyle='#bfc3c8';g.lineWidth=2;g.beginPath();g.arc(px+16,py+13,4,Math.PI,0);g.stroke();g.fillStyle='#333';g.fillRect(px+15,py+16,2,4)}
  if(state==='code'){g.fillStyle='#2a2a2a';rr(g,px+6,py+9,20,15,2);g.fill();g.fillStyle='#7f7';g.font='8px monospace';g.textAlign='center';g.fillText('• • • •',px+16,py+19);g.fillStyle='#d9b86a';g.fillRect(px+6,py+9,20,1)}};
 // ---- objects ----
@@ -99,7 +99,7 @@ drawObj=function(o,px,py,t){const g=X;switch(o.t){
  case'breaker':{shadowRect(px+2,py,28,32);wood(px+2,py,28,32,'#7a7e84',2);g.fillStyle='#16181b';g.fillRect(px+6,py+4,20,24);for(let i=0;i<10;i++){g.fillStyle=i<S.fuses?'#e8c040':'#333';g.fillRect(px+8+(i%5)*3.5,py+6+Math.floor(i/5)*5,2.5,4)}const on=S.fuses>=10;g.fillStyle=on?'#3f3':'#f33';g.fillRect(px+12,py+17,8,4);if(HQ())glow(g,px+16,py+19,10,on?'80,255,80':'255,60,60',.4);g.fillStyle='#aaa';g.fillRect(px+14,py+22,4,5);break}
  case'fuse':{const b=Math.sin(t*3+o.x)*1.5;glow(g,px+16,py+16,14,'255,220,90',.25);g.fillStyle='#e8c040';rr(g,px+10,py+12+b,12,8,2);g.fill();g.fillStyle='#c0c4c8';g.fillRect(px+7,py+13+b,3,6);g.fillRect(px+22,py+13+b,3,6);g.fillStyle='#7a5a10';g.fillRect(px+13,py+15+b,6,2);break}
  case'fake':drawDoor(px,py,o.num,'closed');{const dd=Math.hypot(P.x-px-16,P.y-py-16);if(dd<90)ED.dupeMouth(px,py,S.t,(90-dd)/50)}break;
- case'clue':g.fillStyle='#eee8d0';g.save();g.translate(px+16,py+16);g.rotate(-.08);g.fillRect(-10,-8,20,16);g.restore();g.fillStyle='#222';g.font='700 9px '+FU;g.textAlign='center';g.fillText(pad(o.num),px+16,py+20);g.fillStyle='#d9b86a';g.font='italic 600 11px '+FS;g.fillText('Следующая дверь',px+16,py+4);break;
+ case'clue':g.fillStyle='#eee8d0';g.save();g.translate(px+16,py+16);g.rotate(-.08);g.fillRect(-10,-8,20,16);g.restore();g.fillStyle='#222';g.font='700 9px '+FU;g.textAlign='center';g.fillText(DP(o.num),px+16,py+20);g.fillStyle='#d9b86a';g.font='italic 600 11px '+FS;g.fillText('Следующая дверь',px+16,py+4);break;
  default:if(window.drawObjX)drawObjX(o,px,py,t)}};
 // ---- player ----
 function drawChar(x,y,face,ph,mv,col,o){o=o||{};const g=X;g.save();g.translate(x,y);
