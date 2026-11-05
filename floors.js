@@ -102,7 +102,7 @@ GEN.garden=function(){const N=40;
    if(r.n%8===4)q.safe('tshed',q.edges);if(L.includes(r.n))q.safe('lantp',q.ints);
    if(RNG()<.35)q.safe('vchest',q.edges);
    for(let i=0;i<ri(2,5);i++)q.safe('plant',q.ints);for(let i=0;i<ri(1,3);i++){const p=q.take(q.ints);if(p)put(r,'snare',p[0],p[1])}
-   if(r.n>2&&r.east&&!L.includes(r.n)&&RNG()<.3)r.east.sealed=r.east.vine=true;
+   if(r.n>2&&r.east&&!L.includes(r.n)&&RNG()<.3){r.east.sealed=r.east.vine=true;if(!r.objs.some(o=>o.t==='tshed'))q.safe('tshed',q.edges)}
    if(r.fx.lawn){r.lawn=[];const lx=r.x0+ri(2,4),lw=r.w-ri(5,7),ly=r.y0+2,lh=r.h-4;r.lawn=[lx,ly,lw,lh];r.gard=RNG()<.75}}}};
 GEN.archive=function(){const N=60;
  layout(N,n=>n===0?{t:'astart',w:14,h:10,sub:'archive'}:n===N?{t:'afinal',w:20,h:14,sub:'archive'}:n%15===10?{t:'stacks',w:26,h:18,sub:'archive',dark:true}:{t:'normal',sub:'archive',dark:n>4&&RNG()<.3});
@@ -179,7 +179,7 @@ function winFloor(t,n){if(S.win)return;S.win=true;S.winT=t;S.winN=n||'';SND.win(
  if(FLR==='mines')A('fl_dam')}
 const _int=interact;interact=function(){if(!P.hidden&&!S.safe&&!S.dead){
   // vine doors & sector gates
-  for(const d of [doors[P.room]]){if(d&&d.sealed&&Math.hypot(d.x*T+16-P.x,d.y*T+16-P.y)<52){
+  for(const d of [doors[P.room],doors[P.room-1]]){if(d&&d.sealed&&Math.hypot(d.x*T+16-P.x,d.y*T+16-P.y)<52){
    if(d.vine){if(cut()){d.vine=false;d.sealed=false;d.open=true;netEv({k:'door',n:doors.indexOf(d)});msg('Лоза срезана',1.5)}return}
    if(d.sector){if(P.inv.includes('card')){removeItem('card');d.sealed=false;d.open=true;netEv({k:'door',n:doors.indexOf(d)});SND.lock();msg('Сектор '+'АБВ'[d.sector-1]+' открыт',2)}else{SND.bad();msg('Нужен пропуск сектора — ищи терминал',2.5)}return}}}
   const o=nearObj();if(o&&MYI[o.t]){if(o.t==='dresser')return _int();myInteract(o);return}
@@ -229,7 +229,7 @@ function mines(dt,r){
   const sp=lit?-130:d<260?70:20;const nx=c.x+dx/d*sp*dt,ny=c.y+dy/d*sp*dt;if(passable(Math.floor(nx/T),Math.floor(ny/T))){c.x=nx;c.y=ny}c.cd-=dt;if(d<20&&c.cd<=0&&!P.hidden){c.cd=1.2;damage(18,'crawl')}}
  if(S.dam&&r.t==='dam')dam(dt,r);
  if(S.turn){const o=S.turn.o;if(!near(o,60)){S.turn=null;msg('Вентиль сорвался',1.5)}else{S.turn.t-=dt;if(Math.random()<.2)tone(120+Math.random()*40,.05,'sawtooth',.03);if(S.turn.t<=0){o.used=true;fx(o,'');S.turn=null;SND.lock();damCheck(r)}}}}
-function damCheck(r){const s=S.dam;if(!s)return;const left=r.objs.filter(o=>o.t==='valve'&&o.ph===s.ph&&!o.used).length;if(!left){s.ph++;S.shake=1;msg(s.ph>=3?'Все вентили перекрыты! Запусти главный генератор!':'Фаза '+(s.ph+1)+'/3 — Смоль злится!',3)}}
+function damCheck(r){const s=S.dam;if(!s||s.ph>=3)return;const left=r.objs.filter(o=>o.t==='valve'&&o.ph===s.ph&&!o.used).length;if(!left){s.ph++;S.shake=1;msg(s.ph>=3?'Все вентили перекрыты! Запусти главный генератор!':'Фаза '+(s.ph+1)+'/3 — Смоль злится!',3)}}
 function dam(dt,r){const s=S.dam;damCheck(r);if(s.ph>=3){s.hands=[];return}
  s.ht-=dt;if(s.ht<=0&&!P.hidden){s.ht=Math.max(.8,2-s.ph*.45);s.hands.push({x:P.x+(Math.random()-.5)*60,y:P.y+(Math.random()-.5)*60,t:.95})}
  for(const h of s.hands){h.t-=dt;if(h.t<=0&&!h.done){h.done=1;S.shake=.4;for(let i=0;i<10;i++)puff(h.x,h.y,(Math.random()-.5)*160,(Math.random()-.5)*160,.6,6,'20,15,10',1);if(Math.hypot(h.x-P.x,h.y-P.y)<36&&!P.hidden){if(held('crucifix')){useCrucifix('Длани Смоли',h.x,h.y,'отбросило');s.ht=8}else damage(20,'tarboss')}}}
