@@ -78,7 +78,7 @@ const _int=interact;interact=function(){if(P.hidden||S.dead)return _int();const 
   case 'x_crate':wxApply(o,'cr');wxEv(o,'cr');noise(.25,.25,500);P.noise=(P.noise||0)+.6;{const R=Math.random();if(R<.55){const g=ri(3,15);P.gold+=g;SND.gold();msg('+'+g+' золота',1.5)}else if(R<.75){const it=pick(['battery','bandage','lockpick','vitamins']);if(ITEM[it]&&addItem(it))msg('Найдено: '+ITEM[it].n,2)}else msg('Щепки и пыль',1.2)}STATX('crate');return;
   case 'x_lad':case 'x_vent':{const t=rooms[o.r].objs[o.to];if(!t){msg('Тупик',1);return}P.x=t.x*T+16;P.y=t.y*T+16;unstuck();if(o.t==='x_vent'){noise(.4,.15,300);msg('Ты пролез через вентиляцию',1.5)}else{tone(300,.08,'triangle',.05);msg('Лестница',1)}return}
   case 'x_fdoor':o.used=true;wxEv(o,'fd');if(o.bad){S.jolt=.6;damage(10,'fdoor');msg('За дверцей — пусто и холодно. Что-то укусило!',2.5)}else{const g=ri(10,30);P.gold+=g;SND.gold();msg('Тайник за дверцей: +'+g+' золота',2)}return}};
-const _one=onNetEv;onNetEv=function(e){if(e&&e.k==='wx'){const r=rooms[e.r],o=r&&r.objs[e.i];if(o)wxApply(o,e.a);return}return _one(e)};
+const _one=onNetEv;onNetEv=function(e){if(e&&e.k==='wxs'){const r=rooms[e.r];if(r){r._wx=e.kk;if(P.room===e.r&&!(S.wx||[]).some(q=>q.k===e.kk))spawn(e.kk,r)}return}if(e&&e.k==='wx'){const r=rooms[e.r],o=r&&r.objs[e.i];if(o)wxApply(o,e.a);return}return _one(e)};
 function STATX(k){try{const s=JSON.parse(localStorage.getItem('d2wx')||'{}');s[k]=(s[k]||0)+1;localStorage.setItem('d2wx',JSON.stringify(s));if(k==='note'&&s.note>=10)d2ach('wx_lore');if(k==='crate'&&s.crate>=25)d2ach('wx_crate')}catch(e){}}
 Object.assign(d2ACHL,{wx_lore:['Летописец','Прочитай 10 записок'],wx_crate:['Ломатель','Разбей 25 ящиков'],wx_ent:['Знаток','Переживи 8 разных новых сущностей']});
 // ---------- extra ORIGINAL entities ----------
@@ -87,7 +87,8 @@ Object.assign(HINTS,{moth:'Мотыли летят на свет. Услышал
 const EN={hotel:['moth','bell','whis'],mines:['drip','fume','bell'],back:['tick','lag'],garden:['pollen','scare','moth'],archive:['ink','tick','whis'],stair:['pend','spark','drip']};
 const SEEN=new Set();
 const _er=enterRoom;enterRoom=function(r){_er(r);S.wx=[];S.note=null;if(r.vname&&!r._vs){r._vs=1;S.vn={t:r.vname,ttl:2.5}}
- if(!started||r.t!=='normal'||r.n<4)return;const list=EN[FLR]||EN.hotel;if(Math.random()<.22+Math.min(.18,r.n/600)){const k=pick(list);spawn(k,r)}};
+ if(!started||r.t!=='normal'||r.n<4)return;const list=EN[FLR]||EN.hotel;const ri=rooms.indexOf(r);if(r._wx===undefined){let h=((typeof SEED!=='undefined'?SEED:1)^(ri*2654435761))>>>0;h=Math.imul(h^h>>>15,2246822507)>>>0;h^=h>>>13;const u=(h%10000)/10000;r._wx=u<.22+Math.min(.18,r.n/600)?list[h%list.length]:null}
+ if(r._wx){spawn(r._wx,r);if(NET.coop)netEv({k:'wxs',r:ri,kk:r._wx})}};
 function rc(r){return{x:(r.x0+r.w/2)*T,y:(r.y0+r.h/2)*T}}
 function spawn(k,r){const c=rc(r);const e={k,t:0,x:c.x,y:c.y};
  if(k==='whis'){const w=r.objs.filter(o=>o.t==='wardrobe');if(!w.length)return;e.o=pick(w);e.o.shake=1}

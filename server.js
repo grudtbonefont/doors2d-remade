@@ -22,7 +22,7 @@ wss.on('connection',ws=>{const p={id:nid++,ws,name:null,party:null,alive:true,ra
    case 'create':{leave(p);const id=pid++;PA.set(id,{id,host:p.id,members:[p.id],floor:FLS.includes(m.floor)?m.floor:'hotel',start:[0,50,90].includes(m.start)?m.start:0,state:'wait',auto:!!m.auto,ready:Date.now()+10000});p.party=id;lobby();break}
    case 'join':{const r=PA.get(m.party);if(!r||r.state!=='wait'||r.members.length>=4||r.id===p.party){send(ws,{t:'err',msg:'Нельзя войти в этот лифт'});break}leave(p);r.members.push(p.id);p.party=r.id;if(r.auto)r.ready=Math.max(r.ready,Date.now()+5000);lobby();break}
    case 'leave':leave(p);lobby();break;
-   case 'lp':{if(q&&q.state==='play')break;const o={t:'lp',id:p.id,n:p.name,x:+m.x||0,y:+m.y||0,f:+m.f||0,e:m.e|0,es:m.es|0};const s=JSON.stringify(o);for(const r of PL.values()){if(r===p||!r.name||r.ws.readyState!==1)continue;const rq=PA.get(r.party);if(rq&&rq.state==='play')continue;r.ws.send(s)}break}
+   case 'lp':{if(q&&q.state==='play')break;const o={t:'lp',id:p.id,n:p.name,x:+m.x||0,y:+m.y||0,f:+m.f||0,e:m.e|0,es:m.es|0,sk:String(m.sk||'').slice(0,12)};const s=JSON.stringify(o);for(const r of PL.values()){if(r===p||!r.name||r.ws.readyState!==1)continue;const rq=PA.get(r.party);if(rq&&rq.state==='play')continue;r.ws.send(s)}break}
    case 'cfg':if(q&&q.host===p.id&&q.state==='wait'){if([0,50,90].includes(m.start))q.start=m.start;if(FLS.includes(m.floor))q.floor=m.floor;lobby()}break;
    case 'start':if(q&&q.host===p.id&&q.state==='wait')startP(q);break;
    case 'st':case 'ev':if(q){m.id=p.id;const s=JSON.stringify(m);if(s.length>600)break;for(const i of q.members)if(i!==p.id){const o=PL.get(i);if(o&&o.ws.readyState===1)o.ws.send(s)}}break;

@@ -501,14 +501,14 @@ function netConnect(){const u=wsUrl();if(!u){lobStatus('Офлайн: досту
   else if(m.t==='lobby'){NET.lobby=m;const me=m.players.find(p=>p.id===NET.id);NET.party=me?me.party:null;renderLobby()}
   else if(m.t==='err')lobStatus(m.msg);
   else if(m.t==='go'){NET.coop=true;startElev(m.members.map(p=>p.name),m.start,6);NET.members=m.members;NET.others=new Map();for(const p of m.members)if(p.id!==NET.id)NET.others.set(p.id,{name:p.name,x:0,y:0,tx:0,ty:0,room:0,dead:false,seen:false});if(window.setFLR)setFLR(m.floor||'hotel');reset({seed:m.seed,start:m.start});started=true;showLobby(false)}
-  else if(m.t==='st'&&NET.coop){const o=NET.others.get(m.id);if(o){if(!o.seen){o.x=m.x;o.y=m.y;o.seen=true}o.tx=m.x;o.ty=m.y;o.room=m.room;o.face=m.f;o.dead=m.d;o.hid=m.h;o.hp=m.hp}}
+  else if(m.t==='st'&&NET.coop){const o=NET.others.get(m.id);if(o){if(!o.seen){o.x=m.x;o.y=m.y;o.seen=true}o.tx=m.x;o.ty=m.y;o.room=m.room;o.face=m.f;o.dead=m.d;o.hid=m.h;o.hp=m.hp;o.sk=m.sk;o.it=m.it}}
   else if(m.t==='left'){const o=NET.others.get(m.id);if(o){o.gone=true;if(started)msg(o.name+' покинул игру',3)}}
   else if(m.t==='ev'&&NET.coop&&started)onNetEv(m)}}
 function onNetEv(m){const o=NET.others.get(m.id),nm=o?o.name:'?';
  if(m.k==='rush'){if(!S.ents.length&&!S.dead&&Math.abs(P.room-m.room)<=2&&!S.seek)startRush(m.amb,m.room,true)}
  else if(m.k==='door'){const d=doors[m.n];if(d){d.locked=false;d.code=false;d.open=true}}
  else if(m.k==='dead')msg(nm+' погиб ('+(DNAME[m.c]||'?')+')',4);else if(m.k==='revive')msg(nm+' возродился',3);else if(m.k==='win')msg(nm+' включил свет!',4)}
-function netTick(dt){if(!NET.coop||!started)return;NET.sendT-=dt;if(NET.sendT<=0){NET.sendT=.1;netSend({t:'st',x:Math.round(P.x),y:Math.round(P.y),room:P.room,f:+P.face.toFixed(2),d:!!S.dead,h:!!P.hidden,hp:Math.ceil(P.hp)})}
+function netTick(dt){if(!NET.coop||!started)return;NET.sendT-=dt;if(NET.sendT<=0){NET.sendT=.1;netSend({t:'st',x:Math.round(P.x),y:Math.round(P.y),room:P.room,f:+P.face.toFixed(2),d:!!S.dead,h:!!P.hidden,hp:Math.ceil(P.hp),sk:window.d2skinCode?d2skinCode():'',it:P.inv[P.sel]||''})}
  for(const o of NET.others.values()){const k=Math.min(1,dt*10);o.x+=(o.tx-o.x)*k;o.y+=(o.ty-o.y)*k}}
 const PCOL=['#7cf','#fc7','#c7f','#7f9'];
 function drawOthers(){if(!NET.coop)return;let i=0;for(const[id,o]of NET.others){i++;if(o.gone||!o.seen||o.hid)continue;X.save();X.translate(o.x,o.y);X.globalAlpha=o.dead?.45:1;X.fillStyle=o.dead?'#666':PCOL[i%4];X.beginPath();X.arc(0,0,11,0,7);X.fill();X.strokeStyle='#000';X.lineWidth=2;X.beginPath();X.moveTo(0,0);X.lineTo(Math.cos(o.face||0)*12,Math.sin(o.face||0)*12);X.stroke();
@@ -579,4 +579,4 @@ function drawCredits(){if(!showCredits)return;X.fillStyle='#000';X.fillRect(0,0,
 function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(ELEV){ELEV.t+=dt;audioTick(dt);netTick(dt);if(ELEV.t>=ELEV.dur){ELEV=null;S.shake=.3}}else update(dt);render();if(ELEV)drawElev();X.globalAlpha=1;if(!ELEV)drawPartyHud();drawCredits();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 window.__pass=passable;window.__doors={get P(){return P},get S(){return S},get rooms(){return rooms},get doors(){return doors},get frames(){return frames},enterRoom,update,render,innerOf,bfs,handleKey,get allDoors(){return allDoors},get TM(){return TM},startRush,reset,revive,NET,get SEED(){return SEED},get START(){return START},mkFigure,useCrucifix,get DBTN(){return DBTN},soloStart,get ELEV(){return ELEV},skipElev(){ELEV=null},get libCode(){return libCode},setStarted(){showLobby(false);started=true}};
-</script><script src="gfx.js"></script><script src="mech.js"></script><script src="floors.js"></script><script src="world.js"></script><script src="atrium.js"></script></body></html>
+</script><script src="gfx.js"></script><script src="mech.js"></script><script src="floors.js"></script><script src="world.js"></script><script src="skins.js"></script><script src="atrium.js"></script></body></html>
